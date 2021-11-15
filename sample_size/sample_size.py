@@ -1,9 +1,13 @@
-from numpy import nan
+from typing import List
+
+from numpy import mean
 from statsmodels.stats.power import TTestIndPower
 
 
-def get_nan() -> str:
-    return "This is to prove numpy works that nan can be called as {}".format(nan)
+def get_mean(numbers: List[int]) -> str:
+
+    print(mean([1, 2, 3, 4]))
+    return "This is to prove numpy works that the mean of {} is {:.1f}".format(str(numbers), mean(numbers))
 
 
 def get_ttest_power(effect_size: float) -> str:

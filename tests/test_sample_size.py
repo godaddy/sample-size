@@ -1,15 +1,16 @@
 import unittest
 
-from numpy import nan
-
-from sample_size.sample_size import get_nan
+from sample_size.sample_size import get_mean
 from sample_size.sample_size import get_ttest_power
 
 
 class TestSampleSize(unittest.TestCase):
-    def test_nan(self):
-        result = get_nan()
-        self.assertEqual("This is to prove numpy works that nan can be called as {}".format(nan), result)
+    def test_numpy(self):
+        test_nums = [1, 2, 3, 4]
+        result = get_mean(test_nums)
+        self.assertEqual(
+            "This is to prove numpy works that the mean of {} is {:.1f}".format(str(test_nums), 2.5), result
+        )
 
     def test_statsmodel(self):
         result = get_ttest_power(0.5)
