@@ -107,10 +107,59 @@ approved, other developers with commit access may commit it for the author. When
 doing so, it is important to retain correct attribution of the contribution.
 Generally speaking, Git handles attribution automatically.
 
+## Development
+
+### Local setup
+
+Install [pyenv](https://github.com/pyenv/pyenv#installation) and [poetry](https://python-poetry.org/docs/#installation)
+
+Install and set python 3.7.8 with pyenv:
+
+```console
+pyenv install 3.7.8
+pyenv local 3.7.8
+```
+
+Install dependencies
+
+```console
+poetry install
+```
+
+### Scripts
+
+A number of common checks and tools have been wired up with poetry scripts. Here are some examples
+
+#### Linting
+```
+poetry run lint  # will run the linter checks configured for this project
+```
+
+#### Testing
+```
+poetry run test  # run unit tests uning the testing framworks configured for this project
+```
+
+#### Format checking
+```
+poetry run format  # run a format checker configured for this project.
+```
+
+#### Type checking
+```
+poetry run type_check  # run type check configured for this project.
+```
+
+#### All checks
+There is also an easy way to run all of these checks at once:
+
+```
+poetry run qa  # run all checks
+```
+
 ## Code Style and Documentation
 
-Ensure that your contribution follows the standards set by the project's style
-guide with respect to patterns, naming, documentation and testing.
+Ensure that your contribution follows the [PEP 8 – Style Guide for Python Code](https://www.python.org/dev/peps/pep-0008/) style guide with respect to patterns, naming, documentation and testing.
 
 # Additional Resources
 
