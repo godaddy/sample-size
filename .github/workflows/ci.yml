@@ -77,7 +77,7 @@ jobs:
 
       - name: Format check
         shell: bash
-        run: poetry run format_check
+        run: poetry run format-check
 
       - name: Lint
         shell: bash
@@ -85,7 +85,7 @@ jobs:
 
       - name: Lint
         shell: bash
-        run: poetry run type_check
+        run: poetry run type-check
       
       - name: Unit test
         shell: bash
