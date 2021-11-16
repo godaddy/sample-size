@@ -120,6 +120,12 @@ pyenv install 3.7.8
 pyenv local 3.7.8
 ```
 
+To validate that your poetry venv is using the correct python version
+
+```console
+poetry env info
+```
+
 Install dependencies
 
 ```console
@@ -147,7 +153,7 @@ poetry run format  # run a format checker configured for this project.
 
 #### Type checking
 ```
-poetry run type_check  # run type check configured for this project.
+poetry run type-check  # run type check configured for this project.
 ```
 
 #### All checks

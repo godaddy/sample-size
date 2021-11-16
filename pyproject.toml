@@ -22,9 +22,9 @@ pytest-cov = "^2.11.1"
 qa = "poetry_scripts:qa"
 test = "poetry_scripts:test"
 format = "poetry_scripts:format_fix"
-format_check = "poetry_scripts:format_check"
+format-check = "poetry_scripts:format_check"
 lint = "poetry_scripts:lint"
-type_check = "poetry_scripts:type_check"
+type-check = "poetry_scripts:type_check"
 
 [tool.isort]
 ensure_newline_before_comments = true

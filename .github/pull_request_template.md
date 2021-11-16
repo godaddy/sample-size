@@ -2,7 +2,7 @@ To help us get this pull request reviewed and merged quickly, please be sure to 
 
 * [ ] Tests (if applicable)
 * [ ] Documentation (if applicable)
-* [ ] A full explanation here in the PR description of the work done
+* [ ] A full explanation here in the PR description of the work done and statistical methods used
 
 ## PR Type
 What kind of change does this PR introduce?
