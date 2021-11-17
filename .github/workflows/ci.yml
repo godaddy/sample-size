@@ -1,4 +1,4 @@
-name: Run checks on pull requests and pushes on main branch
+name: Tests
 
 on:
   pull_request: {}
@@ -7,7 +7,7 @@ on:
 
 jobs:
   tests:
-    name: Format Check and Tests
+    name: Format and Tests
     runs-on: "${{ matrix.os }}"
     continue-on-error: ${{ matrix.experimental }}
     strategy:
