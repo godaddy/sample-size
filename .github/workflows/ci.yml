@@ -18,11 +18,8 @@ jobs:
         experimental: [false]
         include:
           - os: ubuntu-latest
-            path: ~/.cache/pypoetry
           - os: windows-latest
-            path: ~\AppData\Local\pypoetry\Cache
           - os: macos-latest
-            path: ~/Library/Caches/pypoetry
     env:
       PYTHON: ${{ matrix.python-version }}
       OS: ${{ matrix.os }}
