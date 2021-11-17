@@ -109,22 +109,42 @@ Generally speaking, Git handles attribution automatically.
 
 ## Development
 
-### Local setup
+### Local Setup
 
-Install [pyenv](https://github.com/pyenv/pyenv#installation) and [poetry](https://python-poetry.org/docs/#installation)
+This project uses [Poetry](https://python-poetry.org/) to manage its dependencies. If you are not familiar with this tool, we highly recommend checking out [poetry docs](https://python-poetry.org/docs/) to get used to the basic usage.
 
-Install and set python 3.7.8 with pyenv:
+Step 1: Install Poetry [here](https://python-poetry.org/docs/#installation) 
+
+Step 2: Run poetry install
+
+Step 3: Optionally Run poetry shell
+
+Additional info if you run into trouble: [Poetry Environments](https://python-poetry.org/docs/managing-environments/)
+
+You could use pyenv with poetry together by following [this section](#setup-with-pyenv)
+
+### Setup with pyenv
+
+It is recommended to use pyenv to switch between Python versions:
+
+Install pyenv [here]https://github.com/pyenv/pyenv#installation)
+
+Install and set python version with pyenv:
 
 ```console
 pyenv install 3.7.8
 pyenv local 3.7.8
 ```
 
+Note: You are welcome to use any python version >= 3.7
+
 To validate that your poetry venv is using the correct python version
 
 ```console
 poetry env info
 ```
+
+Once pyenv and poetry are installed correctly:
 
 Install dependencies
 
