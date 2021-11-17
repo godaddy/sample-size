@@ -136,7 +136,7 @@ pyenv install 3.7.8
 pyenv local 3.7.8
 ```
 
-Note: You are welcome to use any python version >= 3.7
+Note: You are welcome to use any python version >= 3.7.1
 
 To validate that your poetry venv is using the correct python version
 
