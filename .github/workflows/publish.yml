@@ -1,0 +1,32 @@
+name: publish
+
+on:
+  release:
+    types: [published] # Trigger when release is created
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      TEST_PYPI_TOKEN: ${{ secrets.TEST_PYPI_TOKEN }}
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+    steps:
+    - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+    - name: Set up Python 3.7
+      uses: actions/setup-python@3105fb18c05ddd93efea5f9e0bef7a03a6e9e7df
+      with:
+        python-version: 3.7
+    - name: Install dependencies
+      run:  |
+        pip install --upgrade pip
+        pip install --upgrade poetry
+    - name: Publish to Test-PyPI with Poetry
+      run: |
+        poetry config repositories.test-pypi https://test.pypi.org/legacy/
+        poetry config pypi-token.test-pypi $TEST_PYPI_TOKEN
+        poetry publish --build -r test-pypi
+    - name: Publish with Poetry
+      run: |
+        poetry config repositories.pypi "https://pypi.org/legacy/"
+        poetry config pypi-token.pypi $PYPI_TOKEN
+        poetry publish
