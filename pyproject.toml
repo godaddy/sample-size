@@ -6,6 +6,7 @@ authors = []
 include = ["CHANGELOG.md", "README.md"]
 readme = "README.md"
 maintainers = ["GoDaddy <oss@godaddy.com>"]
+keywords = ["sample size", "experimentation", "power analysis"]
 
 [tool.poetry.dependencies]
 python = ">=3.7.1,<3.11"
