@@ -20,10 +20,8 @@ class Boolean:
 class Numeric:
     def __init__(
         self,
-        mean: float,
         variance: float,
     ):
-        self.mean = mean
         self.variance = variance
 
 

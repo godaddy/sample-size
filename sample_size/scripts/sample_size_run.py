@@ -1,7 +1,7 @@
 from sample_size.sample_size_calculator.sample_size_calculator import SampleSizeCalculators
-from sample_size.utils.utils import get_power_analysis_input
-from sample_size.utils.utils import get_sample_size
-from sample_size.utils.utils import get_variable_from_input
+from sample_size.scripts.utils import get_power_analysis_input
+from sample_size.scripts.utils import get_sample_size
+from sample_size.scripts.utils import get_variable_from_input
 
 if __name__ == "__main__":
     """

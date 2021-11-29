@@ -45,9 +45,9 @@ def get_sample_size(variable_name: str, calculator: SampleSizeCalculators) -> fl
         parameters = get_variable_parameters(parameters_definitions)
         return calculator.get_boolean_sample_size(parameters["probability"])
     elif variable_name == "numeric":
-        parameters_definitions = {"mean": "mean of the baseline metric", "variance": "variance of the baseline metric"}
+        parameters_definitions = {"variance": "variance of the baseline metric"}
         parameters = get_variable_parameters(parameters_definitions)
-        return calculator.get_numeric_sample_size(parameters["mean"], parameters["variance"])
+        return calculator.get_numeric_sample_size(parameters["variance"])
     elif variable_name == "ratio":
         parameters_definitions = {
             "numerator_mean": "mean of the baseline metric's numerator",
@@ -74,7 +74,7 @@ def get_power_analysis_input() -> PowerAnalysisParameters:
     alpha = get_alpha(get_input("alpha (default 0.05)", allow_na=True))
     if alpha:
         parameters.alpha = alpha
-    parameters.mde = get_input("minimum detectable effect")
+    parameters.mde = get_input("absolute minimum detectable effect")
 
     return parameters
 

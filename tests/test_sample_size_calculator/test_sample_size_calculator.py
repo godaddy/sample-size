@@ -156,9 +156,8 @@ class SampleSizeCalculatorsTestCase(unittest.TestCase):
     @patch("sample_size.sample_size_calculator.sample_size_calculator.SampleSizeCalculators.get_sample_size")
     def test_get_numeric_sample_size(self, mock_get_sample_size):
         mock_get_sample_size.return_value = self.DEFAULT_SAMPLE_SIZE
-        test_mean = 50
         test_variance = 5000
-        bool_obj = Numeric(test_mean, test_variance)
+        bool_obj = Numeric(test_variance)
 
         calculators = SampleSizeCalculators(
             self.DEFAULT_MDE,
@@ -166,7 +165,7 @@ class SampleSizeCalculatorsTestCase(unittest.TestCase):
             self.DEFAULT_POWER,
         )
 
-        sample_size = calculators.get_numeric_sample_size(test_mean, test_variance)
+        sample_size = calculators.get_numeric_sample_size(test_variance)
 
         self.assertEqual(sample_size, self.DEFAULT_SAMPLE_SIZE)
         mock_get_sample_size.assert_called_once()

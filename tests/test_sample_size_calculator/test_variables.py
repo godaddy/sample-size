@@ -65,9 +65,8 @@ class VariableTestCase(unittest.TestCase):
 
     def test_numeric_constructor_sets_params(self):
 
-        numeric = Numeric(self.DEFAULT_MEAN, self.DEFAULT_VARIANCE)
+        numeric = Numeric(self.DEFAULT_VARIANCE)
 
-        self.assertEqual(numeric.mean, self.DEFAULT_MEAN)
         self.assertEqual(numeric.variance, self.DEFAULT_VARIANCE)
 
     @patch("sample_size.sample_size_calculator.variables.Ratio.get_variance")

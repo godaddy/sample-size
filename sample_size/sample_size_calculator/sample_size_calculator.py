@@ -89,8 +89,8 @@ class SampleSizeCalculators:
         bool_obj = Boolean(probability)
         return self.get_sample_size(bool_obj.variance, NormalIndPower)
 
-    def get_numeric_sample_size(self, mean: float, variance: float) -> float:
-        numeric_obj = Numeric(mean, variance)
+    def get_numeric_sample_size(self, variance: float) -> float:
+        numeric_obj = Numeric(variance)
         return self.get_sample_size(numeric_obj.variance, TTestIndPower)
 
     def get_ratio_sample_size(

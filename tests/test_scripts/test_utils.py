@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from numpy.testing import assert_equal
 
-import sample_size.utils.utils as utils
+import sample_size.scripts.utils as utils
 from sample_size.sample_size_calculator.sample_size_calculator import DEFAULT_ALPHA
 from sample_size.sample_size_calculator.sample_size_calculator import DEFAULT_POWER
 from sample_size.sample_size_calculator.sample_size_calculator import PowerAnalysisParameters
@@ -36,14 +36,14 @@ class UtilsTestCase(unittest.TestCase):
 
         self.assertEqual(result, False)
 
-    @patch("sample_size.utils.utils.get_raw_input")
+    @patch("sample_size.scripts.utils.get_raw_input")
     def test_inputs_float(self, mock_get_raw_input):
         mock_get_raw_input.return_value = "0.05"
         result = utils.get_input(self.TEST_STR)
 
         self.assertEqual(result, 0.05)
 
-    @patch("sample_size.utils.utils.get_raw_input")
+    @patch("sample_size.scripts.utils.get_raw_input")
     def test_get_input_blank_str(self, mock_get_raw_input):
         mock_get_raw_input.return_value = ""
 
@@ -54,7 +54,7 @@ class UtilsTestCase(unittest.TestCase):
                 Exception(f"Error: Please enter a float for the {self.TEST_STR}."),
             )
 
-    @patch("sample_size.utils.utils.get_raw_input")
+    @patch("sample_size.scripts.utils.get_raw_input")
     def test_get_input_blank_str_allowed(self, mock_get_raw_input):
         mock_get_raw_input.return_value = " "
 
@@ -62,7 +62,7 @@ class UtilsTestCase(unittest.TestCase):
 
         self.assertEqual(result, DEFAULT_ALPHA)
 
-    @patch("sample_size.utils.utils.get_raw_input")
+    @patch("sample_size.scripts.utils.get_raw_input")
     def test_get_input_blank_str_allowed_non_float(self, mock_get_raw_input):
         mock_get_raw_input.return_value = "test"
 
@@ -73,7 +73,7 @@ class UtilsTestCase(unittest.TestCase):
                 Exception(f"Error: Please enter a float for the {self.TEST_STR}."),
             )
 
-    @patch("sample_size.utils.utils.get_input")
+    @patch("sample_size.scripts.utils.get_input")
     def test_get_variable_parameters(self, mock_get_input):
         test_input_float = 5
         mock_get_input.return_value = test_input_float
@@ -96,7 +96,7 @@ class UtilsTestCase(unittest.TestCase):
         )
 
     @patch("sample_size.sample_size_calculator.sample_size_calculator.SampleSizeCalculators")
-    @patch("sample_size.utils.utils.get_variable_parameters")
+    @patch("sample_size.scripts.utils.get_variable_parameters")
     def test_get_sample_size_boolean(self, mock_get_variable_parameters, mock_calculator):
         test_variable_name = "Boolean"
         test_probability = 0.05
@@ -116,16 +116,14 @@ class UtilsTestCase(unittest.TestCase):
         mock_calculator.get_boolean_sample_size.assert_called_once_with(test_probability)
 
     @patch("sample_size.sample_size_calculator.sample_size_calculator.SampleSizeCalculators")
-    @patch("sample_size.utils.utils.get_variable_parameters")
+    @patch("sample_size.scripts.utils.get_variable_parameters")
     def test_get_sample_size_numeric(self, mock_get_variable_parameters, mock_calculator):
         test_variable_name = "Numeric"
-        test_mean = 50
         test_variance = 5000
 
-        parameters_definitions = {"mean": "mean of the baseline metric", "variance": "variance of the baseline metric"}
+        parameters_definitions = {"variance": "variance of the baseline metric"}
 
         mock_get_variable_parameters.return_value = {
-            "mean": test_mean,
             "variance": test_variance,
         }
         mock_calculator.get_numeric_sample_size.return_value = self.TEST_SAMPLE_SIZE
@@ -135,11 +133,10 @@ class UtilsTestCase(unittest.TestCase):
         self.assertEqual(sample_size, self.TEST_SAMPLE_SIZE)
         mock_get_variable_parameters.assert_called_once_with(parameters_definitions)
         mock_calculator.get_numeric_sample_size.assert_called_once()
-        assert_equal(mock_calculator.get_numeric_sample_size.call_args[0][0], test_mean)
-        assert_equal(mock_calculator.get_numeric_sample_size.call_args[0][1], test_variance)
+        assert_equal(mock_calculator.get_numeric_sample_size.call_args[0][0], test_variance)
 
     @patch("sample_size.sample_size_calculator.sample_size_calculator.SampleSizeCalculators")
-    @patch("sample_size.utils.utils.get_variable_parameters")
+    @patch("sample_size.scripts.utils.get_variable_parameters")
     def test_get_sample_size_ratio(self, mock_get_variable_parameters, mock_calculator):
         test_variable_name = "Ratio"
         test_numerator_mean = 2000
@@ -187,8 +184,8 @@ class UtilsTestCase(unittest.TestCase):
                 Exception("Error: Unexpected variable name. Please use Boolean, Numeric, or Ratio."),
             )
 
-    @patch("sample_size.utils.utils.get_input")
-    @patch("sample_size.utils.utils.get_alpha")
+    @patch("sample_size.scripts.utils.get_input")
+    @patch("sample_size.scripts.utils.get_alpha")
     def test_get_power_analysis_input(self, mock_get_alpha, mock_get_input):
         test_alpha = 0.05
         test_mde = 0.1
@@ -205,11 +202,11 @@ class UtilsTestCase(unittest.TestCase):
         mock_get_alpha.assert_called_once_with(test_alpha)
         self.assertEqual(mock_get_input.call_count, 2)
         assert_equal(mock_get_input.call_args_list[0][0][0], "alpha (default 0.05)")
-        assert_equal(mock_get_input.call_args_list[1][0][0], "minimum detectable effect")
+        assert_equal(mock_get_input.call_args_list[1][0][0], "absolute minimum detectable effect")
         self.compare_power_analysis_parameters(parameters, test_parameters)
 
-    @patch("sample_size.utils.utils.get_input")
-    @patch("sample_size.utils.utils.get_alpha")
+    @patch("sample_size.scripts.utils.get_input")
+    @patch("sample_size.scripts.utils.get_alpha")
     def test_get_power_analysis_input_null_alpha(self, mock_get_alpha, mock_get_input):
         test_alpha = None
         test_mde = 0.1
@@ -226,7 +223,7 @@ class UtilsTestCase(unittest.TestCase):
         mock_get_alpha.assert_called_once_with(test_alpha)
         self.assertEqual(mock_get_input.call_count, 2)
         assert_equal(mock_get_input.call_args_list[0][0][0], "alpha (default 0.05)")
-        assert_equal(mock_get_input.call_args_list[1][0][0], "minimum detectable effect")
+        assert_equal(mock_get_input.call_args_list[1][0][0], "absolute minimum detectable effect")
         self.compare_power_analysis_parameters(parameters, test_parameters)
 
     def test_get_alpha(self):
@@ -255,7 +252,7 @@ class UtilsTestCase(unittest.TestCase):
                 Exception("Error: Please provide a float between 0 and 0.3 for alpha."),
             )
 
-    @patch("sample_size.utils.utils.get_raw_input")
+    @patch("sample_size.scripts.utils.get_raw_input")
     def test_get_variable_from_input_boolean(self, mock_get_raw_input):
         mock_get_raw_input.return_value = " Boolean "
 
@@ -263,7 +260,7 @@ class UtilsTestCase(unittest.TestCase):
 
         self.assertEqual(metric_type, "boolean")
 
-    @patch("sample_size.utils.utils.get_raw_input")
+    @patch("sample_size.scripts.utils.get_raw_input")
     def test_get_variable_from_input_numeric(self, mock_get_raw_input):
         mock_get_raw_input.return_value = " Numeric "
 
@@ -271,7 +268,7 @@ class UtilsTestCase(unittest.TestCase):
 
         self.assertEqual(metric_type, "numeric")
 
-    @patch("sample_size.utils.utils.get_raw_input")
+    @patch("sample_size.scripts.utils.get_raw_input")
     def test_get_variable_from_input_ratio(self, mock_get_raw_input):
         mock_get_raw_input.return_value = " Ratio "
 
@@ -279,7 +276,7 @@ class UtilsTestCase(unittest.TestCase):
 
         self.assertEqual(metric_type, "ratio")
 
-    @patch("sample_size.utils.utils.get_raw_input")
+    @patch("sample_size.scripts.utils.get_raw_input")
     def test_get_variable_from_input_error(self, mock_get_raw_input):
         mock_get_raw_input.return_value = "test"
 
