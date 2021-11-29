@@ -1,0 +1,6 @@
+[flake8]
+exclude = .git,.eggs,__pycache__,venv,old,build,dist,*.egg-info,.venv
+max-line-length = 120
+extend-ignore =
+    # See https://github.com/PyCQA/pycodestyle/issues/373
+    E203
