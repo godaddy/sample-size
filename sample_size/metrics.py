@@ -1,31 +1,41 @@
-class Boolean:
+from statsmodels.stats.power import NormalIndPower
+from statsmodels.stats.power import TTestIndPower
+
+
+class BooleanMetric:
     def __init__(
         self,
         probability: float,
+        mde: float,
     ):
-        self.probability = self.get_probability(probability)
-        self.variance = self.get_variance()
+        self.probability = self._get_probability(probability)
+        self.variance = self._get_variance()
+        self.mde = mde
+        self.default_power_analysis_type = NormalIndPower
 
-    def get_variance(self) -> float:
+    def _get_variance(self) -> float:
         return self.probability * (1 - self.probability)
 
     @staticmethod
-    def get_probability(probability: float) -> float:
+    def _get_probability(probability: float) -> float:
         if 0 <= probability <= 1:
             return probability
         else:
             raise Exception("Error: Please provide a float between 0 and 1 for probability.")
 
 
-class Numeric:
+class NumericMetric:
     def __init__(
         self,
         variance: float,
+        mde: float,
     ):
         self.variance = variance
+        self.mde = mde
+        self.default_power_analysis_type = TTestIndPower
 
 
-class Ratio:
+class RatioMetric:
     def __init__(
         self,
         numerator_mean: float,
@@ -33,15 +43,18 @@ class Ratio:
         denominator_mean: float,
         denominator_variance: float,
         covariance: float,
+        mde: float,
     ):
         self.numerator_mean = numerator_mean
         self.numerator_variance = numerator_variance
         self.denominator_mean = denominator_mean
         self.denominator_variance = denominator_variance
         self.covariance = covariance
-        self.variance = self.get_variance()
+        self.variance = self._get_variance()
+        self.mde = mde
+        self.default_power_analysis_type = TTestIndPower
 
-    def get_variance(self) -> float:
+    def _get_variance(self) -> float:
 
         variance = (
             self.numerator_variance / self.denominator_mean ** 2
