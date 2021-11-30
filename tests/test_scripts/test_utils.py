@@ -184,8 +184,8 @@ class UtilsTestCase(unittest.TestCase):
 
         mock_get_variable_parameters.assert_called_once_with(parameters_definitions)
         mock_get_mde.assert_called_once_with(test_metric_type)
-        assert_equal(mock_register_bool_metric.call_args[0][0], test_mde)
-        assert_equal(mock_register_bool_metric.call_args[0][1], test_probability)
+        assert_equal(mock_register_bool_metric.call_args[0][0], test_probability)
+        assert_equal(mock_register_bool_metric.call_args[0][1], test_mde)
 
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator.register_numeric_metric")
     @patch("scripts.utils.get_mde")
@@ -206,8 +206,8 @@ class UtilsTestCase(unittest.TestCase):
 
         mock_get_variable_parameters.assert_called_once_with(parameters_definitions)
         mock_get_mde.assert_called_once_with(test_metric_type)
-        assert_equal(mock_register_numeric_metric.call_args[0][0], test_mde)
-        assert_equal(mock_register_numeric_metric.call_args[0][1], test_variance)
+        assert_equal(mock_register_numeric_metric.call_args[0][0], test_variance)
+        assert_equal(mock_register_numeric_metric.call_args[0][1], test_mde)
 
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator.register_ratio_metric")
     @patch("scripts.utils.get_mde")
@@ -243,12 +243,12 @@ class UtilsTestCase(unittest.TestCase):
 
         mock_get_variable_parameters.assert_called_once_with(parameters_definitions)
         mock_get_mde.assert_called_once_with(test_metric_type)
-        assert_equal(mock_register_ratio_metric.call_args[0][0], test_mde)
-        assert_equal(mock_register_ratio_metric.call_args[0][1], test_numerator_mean)
-        assert_equal(mock_register_ratio_metric.call_args[0][2], test_numerator_variance)
-        assert_equal(mock_register_ratio_metric.call_args[0][3], test_denominator_mean)
-        assert_equal(mock_register_ratio_metric.call_args[0][4], test_denominator_variance)
-        assert_equal(mock_register_ratio_metric.call_args[0][5], test_covariance)
+        assert_equal(mock_register_ratio_metric.call_args[0][0], test_numerator_mean)
+        assert_equal(mock_register_ratio_metric.call_args[0][1], test_numerator_variance)
+        assert_equal(mock_register_ratio_metric.call_args[0][2], test_denominator_mean)
+        assert_equal(mock_register_ratio_metric.call_args[0][3], test_denominator_variance)
+        assert_equal(mock_register_ratio_metric.call_args[0][4], test_covariance)
+        assert_equal(mock_register_ratio_metric.call_args[0][5], test_mde)
 
     def test_get_sample_size_other(self):
         test_variable_name = self.TEST_STR
