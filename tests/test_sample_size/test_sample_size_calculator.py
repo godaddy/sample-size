@@ -2,17 +2,16 @@ import unittest
 from unittest.mock import patch
 
 from numpy.testing import assert_equal
-
 from statsmodels.stats.power import NormalIndPower
 from statsmodels.stats.power import TTestIndPower
-from sample_size.sample_size_calculator.sample_size_calculator import DEFAULT_ALPHA
-from sample_size.sample_size_calculator.sample_size_calculator import DEFAULT_POWER
-from sample_size.sample_size_calculator.sample_size_calculator import PowerAnalysisParameters
-from sample_size.sample_size_calculator.sample_size_calculator import SampleSizeCalculator
+
+from sample_size.sample_size_calculator import DEFAULT_ALPHA
+from sample_size.sample_size_calculator import DEFAULT_POWER
+from sample_size.sample_size_calculator import PowerAnalysisParameters
+from sample_size.sample_size_calculator import SampleSizeCalculator
 
 
 class PowerAnalysisParametersTestCase(unittest.TestCase):
-
     def setUp(self):
         self.DEFAULT_METRIC_VARIANCE = 500
         self.DEFAULT_MDE = 5
@@ -44,7 +43,6 @@ class PowerAnalysisParametersTestCase(unittest.TestCase):
 
 
 class SampleSizeCalculatorTestCase(unittest.TestCase):
-
     def test_sample_size_calculator_constructor_sets_params(self):
         calculator = SampleSizeCalculator(
             DEFAULT_ALPHA,
@@ -171,7 +169,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         assert_equal(mock_solve_power.call_args[1]["ratio"], 1)
         assert_equal(mock_solve_power.call_args[1]["alternative"], "two-sided")
 
-    @patch("sample_size.sample_size_calculator.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
+    @patch("sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
     def test_get_overall_sample_size_bool(self, mock_get_single_sample_size):
         test_sample_size = 2000
         mock_get_single_sample_size.return_value = test_sample_size
@@ -190,7 +188,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         assert_equal(mock_get_single_sample_size.call_args[0][0].power, DEFAULT_POWER)
         assert_equal(mock_get_single_sample_size.call_args[0][1], NormalIndPower)
 
-    @patch("sample_size.sample_size_calculator.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
+    @patch("sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
     def test_get_overall_sample_size_numeric(self, mock_get_single_sample_size):
         test_sample_size = 2000
         mock_get_single_sample_size.return_value = test_sample_size
@@ -210,7 +208,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         assert_equal(mock_get_single_sample_size.call_args[0][0].power, DEFAULT_POWER)
         assert_equal(mock_get_single_sample_size.call_args[0][1], TTestIndPower)
 
-    @patch("sample_size.sample_size_calculator.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
+    @patch("sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
     def test_get_overall_sample_size_ratio(self, mock_get_single_sample_size):
         test_sample_size = 2000
         mock_get_single_sample_size.return_value = test_sample_size
@@ -241,4 +239,3 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         assert_equal(mock_get_single_sample_size.call_args[0][0].metric_variance, test_variance)
         assert_equal(mock_get_single_sample_size.call_args[0][0].power, DEFAULT_POWER)
         assert_equal(mock_get_single_sample_size.call_args[0][1], TTestIndPower)
-

@@ -1,9 +1,9 @@
 import unittest
 from unittest.mock import patch
 
-from sample_size.sample_size_calculator.variables import Boolean
-from sample_size.sample_size_calculator.variables import Numeric
-from sample_size.sample_size_calculator.variables import Ratio
+from sample_size.variables import Boolean
+from sample_size.variables import Numeric
+from sample_size.variables import Ratio
 
 
 class VariableTestCase(unittest.TestCase):
@@ -18,8 +18,8 @@ class VariableTestCase(unittest.TestCase):
         self.DEFAULT_COVARIANCE = 5000
         self.DEFAULT_MOCK_VALUE = 99
 
-    @patch("sample_size.sample_size_calculator.variables.Boolean.get_probability")
-    @patch("sample_size.sample_size_calculator.variables.Boolean.get_variance")
+    @patch("sample_size.variables.Boolean.get_probability")
+    @patch("sample_size.variables.Boolean.get_variance")
     def test_boolean_constructor_sets_params(self, mock_get_variance, mock_get_probability):
 
         mock_get_variance.return_value = self.DEFAULT_MOCK_VALUE
@@ -69,7 +69,7 @@ class VariableTestCase(unittest.TestCase):
 
         self.assertEqual(numeric.variance, self.DEFAULT_VARIANCE)
 
-    @patch("sample_size.sample_size_calculator.variables.Ratio.get_variance")
+    @patch("sample_size.variables.Ratio.get_variance")
     def test_ratio_constructor_sets_params(self, mock_get_variance):
         mock_get_variance.return_value = self.DEFAULT_MOCK_VALUE
         ratio = Ratio(
