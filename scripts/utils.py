@@ -68,12 +68,12 @@ def register_metric(metric_type: str, calculator: SampleSizeCalculator) -> None:
         parameters_definitions = {"probability": "baseline probability"}
         parameters = get_variable_parameters(parameters_definitions)
         mde = get_mde(metric_type)
-        calculator.register_bool_metric(mde, parameters["probability"])
+        calculator.register_bool_metric(parameters["probability"], mde)
     elif metric_type == "numeric":
         parameters_definitions = {"variance": "variance of the baseline metric"}
         parameters = get_variable_parameters(parameters_definitions)
         mde = get_mde(metric_type)
-        calculator.register_numeric_metric(mde, parameters["variance"])
+        calculator.register_numeric_metric(parameters["variance"], mde)
     elif metric_type == "ratio":
         parameters_definitions = {
             "numerator_mean": "mean of the baseline metric's numerator",
@@ -85,12 +85,12 @@ def register_metric(metric_type: str, calculator: SampleSizeCalculator) -> None:
         parameters = get_variable_parameters(parameters_definitions)
         mde = get_mde(metric_type)
         calculator.register_ratio_metric(
-            mde,
             parameters["numerator_mean"],
             parameters["numerator_variance"],
             parameters["denominator_mean"],
             parameters["denominator_variance"],
             parameters["covariance"],
+            mde,
         )
     else:
         raise Exception("Error: Unexpected variable name. Please use Boolean, Numeric, or Ratio.")
