@@ -22,7 +22,7 @@ def execute(name: str, command: List[str], failure_message: str) -> None:
 # The following section defines individual methods to run specific sub-tasks, used by poetry
 # hooks given in the pyproject.toml file. Add new tasks to qa() below as well.
 def test() -> None:
-    execute("test", ["pytest"], "Please fix the failing test.")
+    execute("tests", ["pytest", "tests", "--cov-fail-under", "95"], "Please fix the failing test.")
 
 
 def format_check() -> None:

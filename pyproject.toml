@@ -67,7 +67,7 @@ testpaths = ["tests"]
 
 [tool.coverage.run]
 branch = true
-source = ["sample_size"]
+source = ["sample_size", "scripts"]
 
 [tool.coverage.report]
 exclude_lines = [
