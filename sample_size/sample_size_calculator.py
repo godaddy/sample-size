@@ -65,7 +65,7 @@ class SampleSizeCalculator:
         return sample_size
 
     def get_sample_size(self) -> float:
-        # Supports the sample size calculation for single metric now.
+        # Supports single metric now.
         # The current structure is set up to support multiple metrics in the future.
         sample_size = float("nan")
         if self.boolean_metrics:
