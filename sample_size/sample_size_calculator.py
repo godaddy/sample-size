@@ -23,6 +23,7 @@ class SampleSizeCalculator:
     def __init__(self, alpha: float = DEFAULT_ALPHA, power: float = DEFAULT_POWER):
         self.alpha = alpha
         self.power = power
+        # Consider having a self.metrics to hold all metric types
         self.boolean_metrics: List[BooleanMetric] = []
         self.numeric_metrics: List[NumericMetric] = []
         self.ratio_metrics: List[RatioMetric] = []
