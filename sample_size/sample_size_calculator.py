@@ -23,6 +23,7 @@ class SampleSizeCalculator:
     def __init__(self, alpha: float = DEFAULT_ALPHA, power: float = DEFAULT_POWER):
         self.alpha = alpha
         self.power = power
+        # Consider having a self.metrics to hold all metric types
         self.boolean_metrics: List[BooleanMetric] = []
         self.numeric_metrics: List[NumericMetric] = []
         self.ratio_metrics: List[RatioMetric] = []
@@ -64,7 +65,7 @@ class SampleSizeCalculator:
         return sample_size
 
     def get_overall_sample_size(self) -> float:
-        # Supports the sample size calculation for single metric now.
+        # Supports single metric now.
         # The current structure is set up to support multiple metrics in the future.
         sample_size = float("nan")
         if self.boolean_metrics:
