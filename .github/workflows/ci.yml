@@ -35,7 +35,7 @@ jobs:
         shell: bash
         run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
 
-      - name: Install dependencies
+      - name: Install poetry
         run:  |
           pip install --upgrade pip
           pip install --upgrade poetry
