@@ -117,12 +117,13 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         sample_size = calculator._get_single_sample_size(test_metric)
 
         self.assertEqual(sample_size, test_sample_size)
-        mock_solve_power.assert_called_once()
-        assert_equal(mock_solve_power.call_args[1]["effect_size"], 0.09176629354822471)
-        assert_equal(mock_solve_power.call_args[1]["alpha"], DEFAULT_ALPHA)
-        assert_equal(mock_solve_power.call_args[1]["power"], DEFAULT_POWER)
-        assert_equal(mock_solve_power.call_args[1]["ratio"], 1)
-        assert_equal(mock_solve_power.call_args[1]["alternative"], "two-sided")
+        mock_solve_power.assert_called_once_with(
+            effect_size=0.09176629354822471,
+            alpha=DEFAULT_ALPHA,
+            power=DEFAULT_POWER,
+            ratio=1,
+            alternative="two-sided",
+        )
 
     @patch("statsmodels.stats.power.TTestIndPower.solve_power")
     def test_get_single_sample_size_ttest(self, mock_solve_power):
@@ -139,12 +140,13 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         sample_size = calculator._get_single_sample_size(test_metric)
 
         self.assertEqual(sample_size, test_sample_size)
-        mock_solve_power.assert_called_once()
-        assert_equal(mock_solve_power.call_args[1]["effect_size"], 0.15811388300841897)
-        assert_equal(mock_solve_power.call_args[1]["alpha"], DEFAULT_ALPHA)
-        assert_equal(mock_solve_power.call_args[1]["power"], DEFAULT_POWER)
-        assert_equal(mock_solve_power.call_args[1]["ratio"], 1)
-        assert_equal(mock_solve_power.call_args[1]["alternative"], "two-sided")
+        mock_solve_power.assert_called_once_with(
+            effect_size=0.15811388300841897,
+            alpha=DEFAULT_ALPHA,
+            power=DEFAULT_POWER,
+            ratio=1,
+            alternative="two-sided",
+        )
 
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
     def test_get_overall_sample_size_bool(self, mock_get_single_sample_size):
@@ -156,7 +158,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         calculator = SampleSizeCalculator()
         calculator.register_bool_metric(test_probability, test_mde)
 
-        sample_size = calculator.get_overall_sample_size()
+        sample_size = calculator.get_sample_size()
 
         self.assertEqual(sample_size, test_sample_size)
         mock_get_single_sample_size.assert_called_once()
@@ -174,7 +176,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         calculator = SampleSizeCalculator()
         calculator.register_numeric_metric(test_variance, test_mde)
 
-        sample_size = calculator.get_overall_sample_size()
+        sample_size = calculator.get_sample_size()
 
         self.assertEqual(sample_size, test_sample_size)
         mock_get_single_sample_size.assert_called_once()
@@ -203,7 +205,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
             test_mde,
         )
 
-        sample_size = calculator.get_overall_sample_size()
+        sample_size = calculator.get_sample_size()
 
         self.assertEqual(sample_size, test_sample_size)
         mock_get_single_sample_size.assert_called_once()

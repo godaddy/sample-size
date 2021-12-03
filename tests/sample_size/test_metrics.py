@@ -13,21 +13,21 @@ class BooleanMetricTestCase(unittest.TestCase):
     def setUp(self):
         self.DEFAULT_MDE = 0.01
         self.DEFAULT_PROBABILITY = 0.05
-        self.DEFAULT_MOCK_VALUE = 99
+        self.DEFAULT_MOCK_VARIANCE = 99
 
     @patch("sample_size.metrics.BooleanMetric._get_probability")
     @patch("sample_size.metrics.BooleanMetric._get_variance")
     def test_boolean_metric_constructor_sets_params(self, mock_get_variance, mock_get_probability):
-        mock_get_variance.return_value = self.DEFAULT_MOCK_VALUE
+        mock_get_variance.return_value = self.DEFAULT_MOCK_VARIANCE
         mock_get_probability.return_value = self.DEFAULT_PROBABILITY
         boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE)
 
         mock_get_variance.assert_called_once()
         mock_get_probability.assert_called_once_with(self.DEFAULT_PROBABILITY)
         self.assertEqual(boolean.probability, self.DEFAULT_PROBABILITY)
-        self.assertEqual(boolean.variance, self.DEFAULT_MOCK_VALUE)
+        self.assertEqual(boolean.variance, self.DEFAULT_MOCK_VARIANCE)
         self.assertEqual(boolean.mde, self.DEFAULT_MDE)
-        self.assertEqual(boolean.default_power_analysis_type, NormalIndPower)
+        self.assertIsInstance(boolean.default_power_analysis_instance, NormalIndPower)
 
     def test_boolean_metric_get_variance(self):
         boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE)
@@ -45,20 +45,22 @@ class BooleanMetricTestCase(unittest.TestCase):
 
         with self.assertRaises(Exception) as context:
             BooleanMetric._get_probability(test_probability)
-            self.assertEqual(
-                context.exception,
-                Exception("Error: Please provide a float between 0 and 1 for probability."),
-            )
+
+        self.assertEqual(
+            str(context.exception),
+            "Error: Please provide a float between 0 and 1 for probability.",
+        )
 
     def test_boolean_metric_get_probability_too_small(self):
         test_probability = -0.1
 
         with self.assertRaises(Exception) as context:
             BooleanMetric._get_probability(test_probability)
-            self.assertEqual(
-                context.exception,
-                Exception("Error: Please provide a float between 0 and 1 for probability."),
-            )
+
+        self.assertEqual(
+            str(context.exception),
+            "Error: Please provide a float between 0 and 1 for probability.",
+        )
 
 
 class NumericMetricTestCase(unittest.TestCase):
@@ -72,7 +74,7 @@ class NumericMetricTestCase(unittest.TestCase):
 
         self.assertEqual(numeric.variance, self.DEFAULT_VARIANCE)
         self.assertEqual(numeric.mde, self.DEFAULT_MDE)
-        self.assertEqual(numeric.default_power_analysis_type, TTestIndPower)
+        self.assertIsInstance(numeric.default_power_analysis_instance, TTestIndPower)
 
 
 class RatioMetricTestCase(unittest.TestCase):
@@ -83,11 +85,11 @@ class RatioMetricTestCase(unittest.TestCase):
         self.DEFAULT_DENOMINATOR_MEAN = 200
         self.DEFAULT_DENOMINATOR_VARIANCE = 2000
         self.DEFAULT_COVARIANCE = 5000
-        self.DEFAULT_MOCK_VALUE = 99
+        self.DEFAULT_VARIANCE = 99
 
     @patch("sample_size.metrics.RatioMetric._get_variance")
     def test_ratio_metric_constructor_sets_params(self, mock_get_variance):
-        mock_get_variance.return_value = self.DEFAULT_MOCK_VALUE
+        mock_get_variance.return_value = self.DEFAULT_VARIANCE
         ratio = RatioMetric(
             self.DEFAULT_NUMERATOR_MEAN,
             self.DEFAULT_NUMERATOR_VARIANCE,
@@ -103,9 +105,9 @@ class RatioMetricTestCase(unittest.TestCase):
         self.assertEqual(ratio.denominator_mean, self.DEFAULT_DENOMINATOR_MEAN)
         self.assertEqual(ratio.denominator_variance, self.DEFAULT_DENOMINATOR_VARIANCE)
         self.assertEqual(ratio.covariance, self.DEFAULT_COVARIANCE)
-        self.assertEqual(ratio.variance, self.DEFAULT_MOCK_VALUE)
+        self.assertEqual(ratio.variance, self.DEFAULT_VARIANCE)
         self.assertEqual(ratio.mde, self.DEFAULT_MDE)
-        self.assertEqual(ratio.default_power_analysis_type, TTestIndPower)
+        self.assertIsInstance(ratio.default_power_analysis_instance, TTestIndPower)
 
     def test_ratio_metric_get_variance(self):
         ratio = RatioMetric(
