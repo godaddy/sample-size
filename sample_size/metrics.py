@@ -3,6 +3,12 @@ from statsmodels.stats.power import TTestIndPower
 
 
 class BooleanMetric:
+
+    probability: float
+    variance: float
+    mde: float
+    default_power_analysis_instance: NormalIndPower
+
     def __init__(
         self,
         probability: float,
@@ -11,7 +17,7 @@ class BooleanMetric:
         self.probability = self._get_probability(probability)
         self.variance = self._get_variance()
         self.mde = mde
-        self.default_power_analysis_type = NormalIndPower
+        self.default_power_analysis_instance = NormalIndPower()
 
     def _get_variance(self) -> float:
         return self.probability * (1 - self.probability)
@@ -21,10 +27,15 @@ class BooleanMetric:
         if 0 <= probability <= 1:
             return probability
         else:
-            raise Exception("Error: Please provide a float between 0 and 1 for probability.")
+            raise ValueError("Error: Please provide a float between 0 and 1 for probability.")
 
 
 class NumericMetric:
+
+    variance: float
+    mde: float
+    default_power_analysis_instance: TTestIndPower
+
     def __init__(
         self,
         variance: float,
@@ -32,10 +43,20 @@ class NumericMetric:
     ):
         self.variance = variance
         self.mde = mde
-        self.default_power_analysis_type = TTestIndPower
+        self.default_power_analysis_instance = TTestIndPower()
 
 
 class RatioMetric:
+
+    numerator_mean: float
+    numerator_variance: float
+    denominator_mean: float
+    denominator_variance: float
+    covariance: float
+    mde: float
+    variance: float
+    default_power_analysis_instance: TTestIndPower
+
     def __init__(
         self,
         numerator_mean: float,
@@ -52,7 +73,7 @@ class RatioMetric:
         self.covariance = covariance
         self.variance = self._get_variance()
         self.mde = mde
-        self.default_power_analysis_type = TTestIndPower
+        self.default_power_analysis_instance = TTestIndPower()
 
     def _get_variance(self) -> float:
 

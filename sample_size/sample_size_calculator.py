@@ -52,7 +52,7 @@ class SampleSizeCalculator:
 
     def _get_single_sample_size(self, metric: Union[BooleanMetric, NumericMetric, RatioMetric]) -> float:
         effect_size = metric.mde / float(np.sqrt(metric.variance))
-        power_analysis = metric.default_power_analysis_type()
+        power_analysis = metric.default_power_analysis_instance
         sample_size = int(
             power_analysis.solve_power(
                 effect_size=effect_size,
@@ -64,8 +64,8 @@ class SampleSizeCalculator:
         )
         return sample_size
 
-    def get_overall_sample_size(self) -> float:
-        # Supports single metric now.
+    def get_sample_size(self) -> float:
+        # Supports the sample size calculation for single metric now.
         # The current structure is set up to support multiple metrics in the future.
         sample_size = float("nan")
         if self.boolean_metrics:
