@@ -26,12 +26,8 @@ def is_float(value: str) -> float:
         return False
 
 
-def get_raw_input(text: str) -> str:
-    return input(text)
-
-
 def get_float_input(input_name: str) -> float:
-    input_str = get_raw_input(f"Enter the {input_name}: ")
+    input_str = input(f"Enter the {input_name}: ")
     if is_float(input_str):
         return float(input_str)
     else:
@@ -39,7 +35,7 @@ def get_float_input(input_name: str) -> float:
 
 
 def get_alpha() -> Union[float, None]:
-    alpha_default_check = get_raw_input("Do you want to use default alpha (0.05) for the power analysis? (y/n)")
+    alpha_default_check = input("Do you want to use default alpha (0.05) for the power analysis? (y/n)")
     if alpha_default_check.lower() == "n":
         alpha = get_float_input("alpha (between 0 and 0.3 inclusively)")
         if 0 < alpha <= 0.3:
@@ -61,7 +57,7 @@ def get_mde(metric_type: str) -> float:
 
 
 def get_metric_type_from_input() -> str:
-    metric_type = get_raw_input("Enter metric type (Boolean, Numeric, Ratio): ").strip().lower()
+    metric_type = input("Enter metric type (Boolean, Numeric, Ratio): ").strip().lower()
     if metric_type in ["boolean", "numeric", "ratio"]:
         return metric_type
     else:

@@ -28,17 +28,17 @@ class UtilsTestCase(unittest.TestCase):
 
         self.assertEqual(result, False)
 
-    @patch("scripts.utils.get_raw_input")
-    def test_get_float_input_float(self, mock_get_raw_input):
-        mock_get_raw_input.return_value = " 0.05"
+    @patch("scripts.utils.input")
+    def test_get_float_input_float(self, mock_input):
+        mock_input.return_value = " 0.05"
         result = utils.get_float_input(self.TEST_STR)
 
         self.assertEqual(result, 0.05)
-        mock_get_raw_input.called_once_with(f"Enter the {self.TEST_STR}: ")
+        mock_input.called_once_with(f"Enter the {self.TEST_STR}: ")
 
-    @patch("scripts.utils.get_raw_input")
-    def test_get_float_input_blank_str_allowed_non_float(self, mock_get_raw_input):
-        mock_get_raw_input.return_value = "test"
+    @patch("scripts.utils.input")
+    def test_get_float_input_blank_str_allowed_non_float(self, mock_input):
+        mock_input.return_value = "test"
 
         with self.assertRaises(Exception) as context:
             utils.get_float_input(self.TEST_STR)
@@ -48,31 +48,31 @@ class UtilsTestCase(unittest.TestCase):
             )
 
     @patch("scripts.utils.get_float_input")
-    @patch("scripts.utils.get_raw_input")
-    def test_get_alpha(self, mock_get_raw_input, mock_get_float_input):
+    @patch("scripts.utils.input")
+    def test_get_alpha(self, mock_input, mock_get_float_input):
         test_input_float = 0.01
-        mock_get_raw_input.return_value = "n"
+        mock_input.return_value = "n"
         mock_get_float_input.return_value = test_input_float
 
         alpha = utils.get_alpha()
 
         self.assertEqual(alpha, test_input_float)
-        mock_get_raw_input.called_once_with("Do you want to use default alpha (0.05) for the power analysis? (y/n)")
+        mock_input.called_once_with("Do you want to use default alpha (0.05) for the power analysis? (y/n)")
         mock_get_float_input.called_once_with("alpha (between 0 and 0.3 inclusively)")
 
-    @patch("scripts.utils.get_raw_input")
-    def test_get_alpha_default(self, mock_get_raw_input):
-        mock_get_raw_input.return_value = "x"
+    @patch("scripts.utils.input")
+    def test_get_alpha_default(self, mock_input):
+        mock_input.return_value = "x"
 
         alpha = utils.get_alpha()
 
         self.assertEqual(alpha, None)
 
     @patch("scripts.utils.get_float_input")
-    @patch("scripts.utils.get_raw_input")
-    def test_get_alpha_error(self, mock_get_raw_input, mock_get_float_input):
+    @patch("scripts.utils.input")
+    def test_get_alpha_error(self, mock_input, mock_get_float_input):
         test_input_float = 0.5
-        mock_get_raw_input.return_value = "n"
+        mock_input.return_value = "n"
         mock_get_float_input.return_value = test_input_float
 
         with self.assertRaises(Exception) as context:
@@ -84,10 +84,10 @@ class UtilsTestCase(unittest.TestCase):
         )
 
     @patch("scripts.utils.get_float_input")
-    @patch("scripts.utils.get_raw_input")
-    def test_get_alpha_too_small(self, mock_get_raw_input, mock_get_float_input):
+    @patch("scripts.utils.input")
+    def test_get_alpha_too_small(self, mock_input, mock_get_float_input):
         test_input_float = -0.1
-        mock_get_raw_input.return_value = "n"
+        mock_input.return_value = "n"
         mock_get_float_input.return_value = test_input_float
 
         with self.assertRaises(Exception) as context:
@@ -112,33 +112,33 @@ class UtilsTestCase(unittest.TestCase):
             f"MDE: targeted treatment metric value minus the baseline value"
         )
 
-    @patch("scripts.utils.get_raw_input")
-    def test_get_variable_from_input_boolean(self, mock_get_raw_input):
-        mock_get_raw_input.return_value = " Boolean "
+    @patch("scripts.utils.input")
+    def test_get_variable_from_input_boolean(self, mock_input):
+        mock_input.return_value = " Boolean "
 
         metric_type = utils.get_metric_type_from_input()
 
         self.assertEqual(metric_type, "boolean")
 
-    @patch("scripts.utils.get_raw_input")
-    def test_get_variable_from_input_numeric(self, mock_get_raw_input):
-        mock_get_raw_input.return_value = " Numeric "
+    @patch("scripts.utils.input")
+    def test_get_variable_from_input_numeric(self, mock_input):
+        mock_input.return_value = " Numeric "
 
         metric_type = utils.get_metric_type_from_input()
 
         self.assertEqual(metric_type, "numeric")
 
-    @patch("scripts.utils.get_raw_input")
-    def test_get_variable_from_input_ratio(self, mock_get_raw_input):
-        mock_get_raw_input.return_value = " Ratio "
+    @patch("scripts.utils.input")
+    def test_get_variable_from_input_ratio(self, mock_input):
+        mock_input.return_value = " Ratio "
 
         metric_type = utils.get_metric_type_from_input()
 
         self.assertEqual(metric_type, "ratio")
 
-    @patch("scripts.utils.get_raw_input")
-    def test_get_variable_from_input_error(self, mock_get_raw_input):
-        mock_get_raw_input.return_value = "test"
+    @patch("scripts.utils.input")
+    def test_get_variable_from_input_error(self, mock_input):
+        mock_input.return_value = "test"
 
         with self.assertRaises(Exception) as context:
             utils.get_metric_type_from_input()
