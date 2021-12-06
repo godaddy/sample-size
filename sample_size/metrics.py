@@ -1,13 +1,24 @@
+from typing import Union
+
 from statsmodels.stats.power import NormalIndPower
 from statsmodels.stats.power import TTestIndPower
 
 
-class BooleanMetric:
+class BaseMetric:
 
-    probability: float
     variance: float
     mde: float
-    default_power_analysis_instance: NormalIndPower
+    default_power_analysis_instance: Union[NormalIndPower, TTestIndPower]
+
+    @staticmethod
+    def check_positive(number: float, name: str) -> None:
+        if number < 0:
+            raise Exception(f"Please provide a positive number for {name}.")
+
+
+class BooleanMetric(BaseMetric):
+
+    probability: float
 
     def __init__(
         self,
@@ -30,32 +41,25 @@ class BooleanMetric:
             raise ValueError("Error: Please provide a float between 0 and 1 for probability.")
 
 
-class NumericMetric:
-
-    variance: float
-    mde: float
-    default_power_analysis_instance: TTestIndPower
-
+class NumericMetric(BaseMetric):
     def __init__(
         self,
         variance: float,
         mde: float,
     ):
+        self.check_positive(variance, "variance")
         self.variance = variance
         self.mde = mde
         self.default_power_analysis_instance = TTestIndPower()
 
 
-class RatioMetric:
+class RatioMetric(BaseMetric):
 
     numerator_mean: float
     numerator_variance: float
     denominator_mean: float
     denominator_variance: float
     covariance: float
-    mde: float
-    variance: float
-    default_power_analysis_instance: TTestIndPower
 
     def __init__(
         self,
@@ -67,8 +71,10 @@ class RatioMetric:
         mde: float,
     ):
         self.numerator_mean = numerator_mean
+        self.check_positive(numerator_variance, "variance")
         self.numerator_variance = numerator_variance
         self.denominator_mean = denominator_mean
+        self.check_positive(denominator_variance, "variance")
         self.denominator_variance = denominator_variance
         self.covariance = covariance
         self.variance = self._get_variance()

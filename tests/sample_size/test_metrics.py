@@ -4,9 +4,24 @@ from unittest.mock import patch
 from statsmodels.stats.power import NormalIndPower
 from statsmodels.stats.power import TTestIndPower
 
+from sample_size.metrics import BaseMetric
 from sample_size.metrics import BooleanMetric
 from sample_size.metrics import NumericMetric
 from sample_size.metrics import RatioMetric
+
+
+class BaseMetricTestCase(unittest.TestCase):
+    def test_check_positive(self):
+        test_negative_number = -10
+        test_name = "test"
+
+        with self.assertRaises(Exception) as context:
+            BaseMetric.check_positive(test_negative_number, test_name)
+
+        self.assertEqual(
+            str(context.exception),
+            f"Please provide a positive number for {test_name}.",
+        )
 
 
 class BooleanMetricTestCase(unittest.TestCase):
