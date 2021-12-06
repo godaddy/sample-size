@@ -8,7 +8,9 @@ def main() -> None:
             * Numeric: variance
             * Ratio: mean and variance of numerator and denominator and their covariance
 
-    NOTE: the calculator supports single metric per calculator for now.
+    NOTES:
+        1. default statistical power is used in this script all the time
+        2. the calculator supports single metric per calculator for now
     """
     from sample_size.sample_size_calculator import SampleSizeCalculator
     from scripts.utils import get_alpha
