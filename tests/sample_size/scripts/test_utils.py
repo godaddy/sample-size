@@ -1,10 +1,11 @@
 import unittest
+from io import StringIO
 from unittest.mock import patch
 
 from numpy.testing import assert_equal
 
-import scripts.utils as utils
 from sample_size.sample_size_calculator import SampleSizeCalculator
+from sample_size.scripts import utils
 
 
 class UtilsTestCase(unittest.TestCase):
@@ -28,52 +29,62 @@ class UtilsTestCase(unittest.TestCase):
 
         self.assertEqual(result, False)
 
-    @patch("scripts.utils.input")
-    def test_get_float_input_float(self, mock_input):
-        mock_input.return_value = " 0.05"
-        result = utils.get_float_input(self.TEST_STR)
+    def test_get_float_float(self):
+        test_input_str = " 0.05"
+        result = utils.get_float(test_input_str, self.TEST_STR)
 
         self.assertEqual(result, 0.05)
-        mock_input.called_once_with(f"Enter the {self.TEST_STR}: ")
 
-    @patch("scripts.utils.input")
-    def test_get_float_input_blank_str_allowed_non_float(self, mock_input):
-        mock_input.return_value = "test"
+    def test_get_float_error(self):
+        test_input_str = "test"
 
         with self.assertRaises(Exception) as context:
-            utils.get_float_input(self.TEST_STR)
-            self.assertEqual(
-                context.exception,
-                Exception(f"Error: Please enter a float for the {self.TEST_STR}."),
-            )
+            utils.get_float(test_input_str, self.TEST_STR)
 
-    @patch("scripts.utils.get_float_input")
-    @patch("scripts.utils.input")
-    def test_get_alpha(self, mock_input, mock_get_float_input):
+        self.assertEqual(
+            str(context.exception),
+            f"Error: Please enter a float for the {self.TEST_STR}.",
+        )
+
+    @patch("sample_size.scripts.utils.get_float")
+    @patch("sample_size.scripts.utils.input")
+    def test_get_alpha(self, mock_input, mock_get_float):
         test_input_float = 0.01
         mock_input.return_value = "n"
-        mock_get_float_input.return_value = test_input_float
+        mock_get_float.return_value = test_input_float
 
-        alpha = utils.get_alpha()
+        with patch("sys.stdout", new=StringIO()) as fakeOutput:
+            alpha = utils.get_alpha()
+            self.assertEqual(
+                fakeOutput.getvalue().strip(),
+                f"Using alpha ({alpha}) and default power (0.8)...",
+            )
 
         self.assertEqual(alpha, test_input_float)
-        mock_input.called_once_with("Do you want to use default alpha (0.05) for the power analysis? (y/n)")
-        mock_get_float_input.called_once_with("alpha (between 0 and 0.3 inclusively)")
+        mock_input.called_once_with(
+            "Enter the alpha between (between 0 and 0.3 inclusively) " "or press Enter to use default alpha=0.05: "
+        )
+        mock_get_float.called_once_with(test_input_float, "alpha")
 
-    @patch("scripts.utils.input")
+    @patch("sample_size.scripts.utils.input")
     def test_get_alpha_default(self, mock_input):
-        mock_input.return_value = "x"
+        mock_input.return_value = " "
 
-        alpha = utils.get_alpha()
+        with patch("sys.stdout", new=StringIO()) as fakeOutput:
+            alpha = utils.get_alpha()
+            self.assertEqual(
+                fakeOutput.getvalue().strip(),
+                "Using default alpha (0.05) and power (0.8)...",
+            )
 
         self.assertEqual(alpha, None)
 
-    @patch("scripts.utils.get_float_input")
-    @patch("scripts.utils.input")
-    def test_get_alpha_error(self, mock_input, mock_get_float_input):
+    @patch("sample_size.scripts.utils.get_float")
+    @patch("sample_size.scripts.utils.input")
+    def test_get_alpha_error(self, mock_input, mock_get_float):
         test_input_float = 0.5
         mock_input.return_value = "n"
-        mock_get_float_input.return_value = test_input_float
+        mock_get_float.return_value = test_input_float
 
         with self.assertRaises(Exception) as context:
             utils.get_alpha()
@@ -83,12 +94,12 @@ class UtilsTestCase(unittest.TestCase):
             "Error: Please provide a float between 0 and 0.3 for alpha.",
         )
 
-    @patch("scripts.utils.get_float_input")
-    @patch("scripts.utils.input")
-    def test_get_alpha_too_small(self, mock_input, mock_get_float_input):
+    @patch("sample_size.scripts.utils.get_float")
+    @patch("sample_size.scripts.utils.input")
+    def test_get_alpha_too_small(self, mock_input, mock_get_float):
         test_input_float = -0.1
         mock_input.return_value = "n"
-        mock_get_float_input.return_value = test_input_float
+        mock_get_float.return_value = test_input_float
 
         with self.assertRaises(Exception) as context:
             utils.get_alpha()
@@ -98,21 +109,24 @@ class UtilsTestCase(unittest.TestCase):
             "Error: Please provide a float between 0 and 0.3 for alpha.",
         )
 
-    @patch("scripts.utils.get_float_input")
-    def test_get_mde(self, mock_get_float_input):
+    @patch("sample_size.scripts.utils.get_float")
+    @patch("sample_size.scripts.utils.input")
+    def test_get_mde(self, mock_input, mock_get_float):
         test_metric_type = "boolean"
         test_mde = 0.01
-        mock_get_float_input.return_value = test_mde
+        mock_input.return_value = test_mde
+        mock_get_float.return_value = test_mde
 
         mde = utils.get_mde(test_metric_type)
 
         self.assertEqual(mde, test_mde)
-        mock_get_float_input.called_once_with(
-            f"absolute minimum detectable effect for this {test_metric_type} \n"
+        mock_input.called_once_with(
+            f"Enter the absolute minimum detectable effect for this {test_metric_type} \n"
             f"MDE: targeted treatment metric value minus the baseline value"
         )
+        mock_get_float.called_once_with(test_mde, "minimum detectable effect")
 
-    @patch("scripts.utils.input")
+    @patch("sample_size.scripts.utils.input")
     def test_get_variable_from_input_boolean(self, mock_input):
         mock_input.return_value = " Boolean "
 
@@ -120,7 +134,7 @@ class UtilsTestCase(unittest.TestCase):
 
         self.assertEqual(metric_type, "boolean")
 
-    @patch("scripts.utils.input")
+    @patch("sample_size.scripts.utils.input")
     def test_get_variable_from_input_numeric(self, mock_input):
         mock_input.return_value = " Numeric "
 
@@ -128,7 +142,7 @@ class UtilsTestCase(unittest.TestCase):
 
         self.assertEqual(metric_type, "numeric")
 
-    @patch("scripts.utils.input")
+    @patch("sample_size.scripts.utils.input")
     def test_get_variable_from_input_ratio(self, mock_input):
         mock_input.return_value = " Ratio "
 
@@ -136,7 +150,7 @@ class UtilsTestCase(unittest.TestCase):
 
         self.assertEqual(metric_type, "ratio")
 
-    @patch("scripts.utils.input")
+    @patch("sample_size.scripts.utils.input")
     def test_get_variable_from_input_error(self, mock_input):
         mock_input.return_value = "test"
 
@@ -148,10 +162,12 @@ class UtilsTestCase(unittest.TestCase):
             "Error: Unexpected metric type. Please enter Boolean, Numeric, or Ratio.",
         )
 
-    @patch("scripts.utils.get_float_input")
-    def test_get_variable_parameters(self, mock_get_float_input):
+    @patch("sample_size.scripts.utils.get_float")
+    @patch("sample_size.scripts.utils.input")
+    def test_get_variable_parameters(self, mock_input, mock_get_float):
         test_input_float = 5
-        mock_get_float_input.return_value = test_input_float
+        mock_input.return_value = test_input_float
+        mock_get_float.return_value = test_input_float
         test_parameter_definitions = {
             "test": "test test",
             "case": "case case",
@@ -159,9 +175,14 @@ class UtilsTestCase(unittest.TestCase):
 
         result = utils.get_variable_parameters(test_parameter_definitions)
 
-        self.assertEqual(mock_get_float_input.call_count, 2)
-        assert_equal(mock_get_float_input.call_args_list[0][0][0], "test test")
-        assert_equal(mock_get_float_input.call_args_list[1][0][0], "case case")
+        self.assertEqual(mock_input.call_count, 2)
+        assert_equal(mock_input.call_args_list[0][0][0], "Enter the test test: ")
+        assert_equal(mock_input.call_args_list[1][0][0], "Enter the case case: ")
+        self.assertEqual(mock_get_float.call_count, 2)
+        assert_equal(mock_get_float.call_args_list[0][0][0], test_input_float)
+        assert_equal(mock_get_float.call_args_list[0][0][1], "test test")
+        assert_equal(mock_get_float.call_args_list[1][0][0], test_input_float)
+        assert_equal(mock_get_float.call_args_list[1][0][1], "case case")
         self.assertEqual(
             result,
             {
@@ -170,9 +191,9 @@ class UtilsTestCase(unittest.TestCase):
             },
         )
 
-    @patch("scripts.utils.get_mde")
-    @patch("scripts.utils.get_variable_parameters")
-    @patch("scripts.utils.get_metric_type_from_input")
+    @patch("sample_size.scripts.utils.get_mde")
+    @patch("sample_size.scripts.utils.get_variable_parameters")
+    @patch("sample_size.scripts.utils.get_metric_type_from_input")
     def test_get_metric_metadata_from_input(
         self, mock_get_metric_type_from_input, mock_get_variable_parameters, mock_get_mde
     ):

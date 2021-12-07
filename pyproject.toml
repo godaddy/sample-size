@@ -25,6 +25,7 @@ format = "poetry_scripts:format_fix"
 format-check = "poetry_scripts:format_check"
 lint = "poetry_scripts:lint"
 type-check = "poetry_scripts:type_check"
+run-sample-size = "sample_size.scripts.sample_size_run:main"
 
 [tool.isort]
 ensure_newline_before_comments = true

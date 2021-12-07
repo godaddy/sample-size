@@ -26,8 +26,8 @@ def is_float(value: str) -> float:
         return False
 
 
-def get_float_input(input_name: str) -> float:
-    input_str = input(f"Enter the {input_name}: ")
+def get_float(input_str: str, input_name: str) -> float:
+    input_str = input_str.strip()
     if is_float(input_str):
         return float(input_str)
     else:
@@ -35,23 +35,29 @@ def get_float_input(input_name: str) -> float:
 
 
 def get_alpha() -> Union[float, None]:
-    alpha_default_check = input("Do you want to use default alpha (0.05) for the power analysis? (y/n)")
-    if alpha_default_check.lower() == "n":
-        alpha = get_float_input("alpha (between 0 and 0.3 inclusively)")
+    alpha_input = input(
+        "Enter the alpha between (between 0 and 0.3 inclusively) " "or press Enter to use default alpha=0.05: "
+    ).strip()
+
+    if alpha_input == "":
+        print("Using default alpha (0.05) and power (0.8)...")
+        return None
+    else:
+        alpha = get_float(alpha_input, "alpha")
         if 0 < alpha <= 0.3:
             print(f"Using alpha ({alpha}) and default power (0.8)...")
             return alpha
         else:
             raise Exception("Error: Please provide a float between 0 and 0.3 for alpha.")
-    else:
-        print("Using default alpha (0.05) and power (0.8)...")
-        return None
 
 
 def get_mde(metric_type: str) -> float:
-    mde = get_float_input(
-        f"absolute minimum detectable effect for this {metric_type} \n"
-        f"MDE: targeted treatment metric value minus the baseline value"
+    mde = get_float(
+        input(
+            f"Enter the absolute minimum detectable effect for this {metric_type} \n"
+            f"MDE: targeted treatment metric value minus the baseline value: "
+        ),
+        "minimum detectable effect",
     )
     return mde
 
@@ -69,7 +75,7 @@ def get_variable_parameters(parameter_definitions: Dict[str, str]) -> Dict[str, 
     parameters = {}
 
     for parameter_name, parameter_definition in parameter_definitions.items():
-        parameters[parameter_name] = get_float_input(parameter_definition)
+        parameters[parameter_name] = get_float(input(f"Enter the {parameter_definition}: "), parameter_definition)
 
     return parameters
 
