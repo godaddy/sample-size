@@ -13,9 +13,9 @@ def main() -> None:
         2. the calculator supports single metric per calculator for now
     """
     from sample_size.sample_size_calculator import SampleSizeCalculator
-    from scripts.utils import get_alpha
-    from scripts.utils import get_metric_metadata_from_input
-    from scripts.utils import register_metric
+    from sample_size.scripts.utils import get_alpha
+    from sample_size.scripts.utils import get_metric_metadata_from_input
+    from sample_size.scripts.utils import register_metric
 
     try:
         # Get alpha for power analysis

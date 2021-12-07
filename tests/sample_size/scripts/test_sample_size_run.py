@@ -6,7 +6,7 @@ from numpy.testing import assert_equal
 
 from sample_size.sample_size_calculator import DEFAULT_ALPHA
 from sample_size.sample_size_calculator import SampleSizeCalculator
-from scripts.sample_size_run import main
+from sample_size.scripts.sample_size_run import main
 
 
 class TestMain(unittest.TestCase):
@@ -16,9 +16,9 @@ class TestMain(unittest.TestCase):
         self.DEFAULT_SAMPLE_SIZE = 2000
 
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator.get_sample_size")
-    @patch("scripts.utils.register_metric")
-    @patch("scripts.utils.get_metric_metadata_from_input")
-    @patch("scripts.utils.get_alpha")
+    @patch("sample_size.scripts.utils.register_metric")
+    @patch("sample_size.scripts.utils.get_metric_metadata_from_input")
+    @patch("sample_size.scripts.utils.get_alpha")
     def test_main_alpha_input(
         self,
         mock_get_alpha,
@@ -49,9 +49,9 @@ class TestMain(unittest.TestCase):
         mock_get_sample_size.assert_called_once()
 
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator.get_sample_size")
-    @patch("scripts.utils.register_metric")
-    @patch("scripts.utils.get_metric_metadata_from_input")
-    @patch("scripts.utils.get_alpha")
+    @patch("sample_size.scripts.utils.register_metric")
+    @patch("sample_size.scripts.utils.get_metric_metadata_from_input")
+    @patch("sample_size.scripts.utils.get_alpha")
     def test_main_default_alpha(
         self, mock_get_alpha, get_metric_metadata_from_input, mock_register_metric, mock_get_sample_size
     ):
@@ -78,9 +78,9 @@ class TestMain(unittest.TestCase):
         mock_get_sample_size.assert_called_once()
 
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator.get_sample_size")
-    @patch("scripts.utils.register_metric")
-    @patch("scripts.utils.get_metric_metadata_from_input")
-    @patch("scripts.utils.get_alpha")
+    @patch("sample_size.scripts.utils.register_metric")
+    @patch("sample_size.scripts.utils.get_metric_metadata_from_input")
+    @patch("sample_size.scripts.utils.get_alpha")
     def test_main_exception_print(
         self, mock_get_alpha, get_metric_metadata_from_input, mock_register_metric, mock_get_sample_size
     ):
