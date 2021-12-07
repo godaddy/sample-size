@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import MagicMock
 from unittest.mock import patch
 
 from statsmodels.stats.power import NormalIndPower
@@ -11,6 +12,7 @@ from sample_size.metrics import RatioMetric
 
 
 class BaseMetricTestCase(unittest.TestCase):
+
     def test_check_positive(self):
         test_negative_number = -10
         test_name = "test"
@@ -31,24 +33,22 @@ class BooleanMetricTestCase(unittest.TestCase):
         self.DEFAULT_MOCK_VARIANCE = 99
 
     @patch("sample_size.metrics.BooleanMetric._get_probability")
-    @patch("sample_size.metrics.BooleanMetric._get_variance")
-    def test_boolean_metric_constructor_sets_params(self, mock_get_variance, mock_get_probability):
-        mock_get_variance.return_value = self.DEFAULT_MOCK_VARIANCE
+    @patch("sample_size.metrics.BooleanMetric.variance")
+    def test_boolean_metric_constructor_sets_params(self, mock_variance, mock_get_probability):
+        mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_MOCK_VARIANCE)
         mock_get_probability.return_value = self.DEFAULT_PROBABILITY
         boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE)
 
-        mock_get_variance.assert_called_once()
         mock_get_probability.assert_called_once_with(self.DEFAULT_PROBABILITY)
         self.assertEqual(boolean.probability, self.DEFAULT_PROBABILITY)
         self.assertEqual(boolean.variance, self.DEFAULT_MOCK_VARIANCE)
         self.assertEqual(boolean.mde, self.DEFAULT_MDE)
         self.assertIsInstance(boolean.default_power_analysis_instance, NormalIndPower)
 
-    def test_boolean_metric_get_variance(self):
+    def test_boolean_metric_variance(self):
         boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE)
-        variance = boolean._get_variance()
 
-        self.assertEqual(variance, 0.0475)
+        self.assertEqual(boolean.variance, 0.0475)
 
     def test_boolean_metric_get_probability(self):
         probability = BooleanMetric._get_probability(self.DEFAULT_PROBABILITY)
@@ -102,9 +102,9 @@ class RatioMetricTestCase(unittest.TestCase):
         self.DEFAULT_COVARIANCE = 5000
         self.DEFAULT_VARIANCE = 99
 
-    @patch("sample_size.metrics.RatioMetric._get_variance")
-    def test_ratio_metric_constructor_sets_params(self, mock_get_variance):
-        mock_get_variance.return_value = self.DEFAULT_VARIANCE
+    @patch("sample_size.metrics.RatioMetric.variance")
+    def test_ratio_metric_constructor_sets_params(self, mock_variance):
+        mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_VARIANCE)
         ratio = RatioMetric(
             self.DEFAULT_NUMERATOR_MEAN,
             self.DEFAULT_NUMERATOR_VARIANCE,
@@ -114,7 +114,6 @@ class RatioMetricTestCase(unittest.TestCase):
             self.DEFAULT_MDE,
         )
 
-        mock_get_variance.assert_called_once()
         self.assertEqual(ratio.numerator_mean, self.DEFAULT_NUMERATOR_MEAN)
         self.assertEqual(ratio.numerator_variance, self.DEFAULT_NUMERATOR_VARIANCE)
         self.assertEqual(ratio.denominator_mean, self.DEFAULT_DENOMINATOR_MEAN)
@@ -124,7 +123,7 @@ class RatioMetricTestCase(unittest.TestCase):
         self.assertEqual(ratio.mde, self.DEFAULT_MDE)
         self.assertIsInstance(ratio.default_power_analysis_instance, TTestIndPower)
 
-    def test_ratio_metric_get_variance(self):
+    def test_ratio_metric_variance(self):
         ratio = RatioMetric(
             self.DEFAULT_NUMERATOR_MEAN,
             self.DEFAULT_NUMERATOR_VARIANCE,
@@ -133,6 +132,5 @@ class RatioMetricTestCase(unittest.TestCase):
             self.DEFAULT_COVARIANCE,
             self.DEFAULT_MDE,
         )
-        variance = ratio._get_variance()
 
-        self.assertEqual(variance, 5.0)
+        self.assertEqual(ratio.variance, 5.0)

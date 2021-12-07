@@ -1,3 +1,5 @@
+from abc import ABCMeta
+from abc import abstractmethod
 from typing import Union
 
 from statsmodels.stats.power import NormalIndPower
@@ -6,32 +8,50 @@ from statsmodels.stats.power import TTestIndPower
 
 class BaseMetric:
 
-    variance: float
+    __metaclass__ = ABCMeta
     mde: float
-    default_power_analysis_instance: Union[NormalIndPower, TTestIndPower]
+
+    def __init__(self, mde: float):
+        self.mde = mde
+
+    @property
+    @abstractmethod
+    def default_power_analysis_instance(self) -> Union[NormalIndPower, TTestIndPower]:
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def variance(self) -> float:
+        raise NotImplementedError
 
     @staticmethod
-    def check_positive(number: float, name: str) -> None:
+    def check_positive(number: float, name: str) -> float:
         if number < 0:
             raise Exception(f"Please provide a positive number for {name}.")
+        else:
+            return number
 
 
 class BooleanMetric(BaseMetric):
 
     probability: float
+    mde: float
 
     def __init__(
         self,
         probability: float,
         mde: float,
     ):
+        super(BooleanMetric, self).__init__(mde)
         self.probability = self._get_probability(probability)
-        self.variance = self._get_variance()
-        self.mde = mde
-        self.default_power_analysis_instance = NormalIndPower()
 
-    def _get_variance(self) -> float:
+    @property
+    def variance(self) -> float:
         return self.probability * (1 - self.probability)
+
+    @property
+    def default_power_analysis_instance(self) -> NormalIndPower:
+        return NormalIndPower()
 
     @staticmethod
     def _get_probability(probability: float) -> float:
@@ -42,15 +62,24 @@ class BooleanMetric(BaseMetric):
 
 
 class NumericMetric(BaseMetric):
+
+    mde: float
+
     def __init__(
         self,
         variance: float,
         mde: float,
     ):
-        self.check_positive(variance, "variance")
-        self.variance = variance
-        self.mde = mde
-        self.default_power_analysis_instance = TTestIndPower()
+        super(NumericMetric, self).__init__(mde)
+        self._variance = self.check_positive(variance, "variance")
+
+    @property
+    def variance(self) -> float:
+        return self._variance
+
+    @property
+    def default_power_analysis_instance(self) -> TTestIndPower:
+        return TTestIndPower()
 
 
 class RatioMetric(BaseMetric):
@@ -70,6 +99,7 @@ class RatioMetric(BaseMetric):
         covariance: float,
         mde: float,
     ):
+        super(RatioMetric, self).__init__(mde)
         self.numerator_mean = numerator_mean
         self.check_positive(numerator_variance, "variance")
         self.numerator_variance = numerator_variance
@@ -77,11 +107,9 @@ class RatioMetric(BaseMetric):
         self.check_positive(denominator_variance, "variance")
         self.denominator_variance = denominator_variance
         self.covariance = covariance
-        self.variance = self._get_variance()
-        self.mde = mde
-        self.default_power_analysis_instance = TTestIndPower()
 
-    def _get_variance(self) -> float:
+    @property
+    def variance(self) -> float:
 
         variance = (
             self.numerator_variance / self.denominator_mean ** 2
@@ -90,3 +118,7 @@ class RatioMetric(BaseMetric):
         )
 
         return variance
+
+    @property
+    def default_power_analysis_instance(self) -> TTestIndPower:
+        return TTestIndPower()
