@@ -21,7 +21,7 @@ class BaseMetricTestCase(unittest.TestCase):
 
         self.assertEqual(
             str(context.exception),
-            f"Please provide a positive number for {test_name}.",
+            f"Error: Please provide a positive number for {test_name}.",
         )
 
 
