@@ -27,7 +27,7 @@ class BaseMetric:
     @staticmethod
     def check_positive(number: float, name: str) -> float:
         if number < 0:
-            raise Exception(f"Please provide a positive number for {name}.")
+            raise Exception(f"Error: Please provide a positive number for {name}.")
         else:
             return number
 
