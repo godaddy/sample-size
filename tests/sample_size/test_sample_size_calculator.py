@@ -102,7 +102,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         )
         self.assertEqual(len(calculator.ratio_metrics), 2)
 
-    @patch("statsmodels.stats.power.NormalIndPower.solve_power")
+    @patch("statsmodels.stats.power.NormalIndPower.solve_power")  # consider parameterize the solver per metric type
     def test_get_single_sample_size_normal(self, mock_solve_power):
         test_probability = 0.05
         test_mde = 0.02
