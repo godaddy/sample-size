@@ -12,7 +12,6 @@ from sample_size.metrics import RatioMetric
 
 
 class BaseMetricTestCase(unittest.TestCase):
-
     def test_check_positive(self):
         test_negative_number = -10
         test_name = "test"
