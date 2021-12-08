@@ -31,14 +31,14 @@ class BooleanMetricTestCase(unittest.TestCase):
         self.DEFAULT_PROBABILITY = 0.05
         self.DEFAULT_MOCK_VARIANCE = 99
 
-    @patch("sample_size.metrics.BooleanMetric._get_probability")
+    @patch("sample_size.metrics.BooleanMetric._check_probability")
     @patch("sample_size.metrics.BooleanMetric.variance")
-    def test_boolean_metric_constructor_sets_params(self, mock_variance, mock_get_probability):
+    def test_boolean_metric_constructor_sets_params(self, mock_variance, mock_check_probability):
         mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_MOCK_VARIANCE)
-        mock_get_probability.return_value = self.DEFAULT_PROBABILITY
+        mock_check_probability.return_value = self.DEFAULT_PROBABILITY
         boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE)
 
-        mock_get_probability.assert_called_once_with(self.DEFAULT_PROBABILITY)
+        mock_check_probability.assert_called_once_with(self.DEFAULT_PROBABILITY)
         self.assertEqual(boolean.probability, self.DEFAULT_PROBABILITY)
         self.assertEqual(boolean.variance, self.DEFAULT_MOCK_VARIANCE)
         self.assertEqual(boolean.mde, self.DEFAULT_MDE)
@@ -50,7 +50,7 @@ class BooleanMetricTestCase(unittest.TestCase):
         self.assertEqual(boolean.variance, 0.0475)
 
     def test_boolean_metric_get_probability(self):
-        probability = BooleanMetric._get_probability(self.DEFAULT_PROBABILITY)
+        probability = BooleanMetric._check_probability(self.DEFAULT_PROBABILITY)
 
         self.assertEqual(probability, self.DEFAULT_PROBABILITY)
 
@@ -58,7 +58,7 @@ class BooleanMetricTestCase(unittest.TestCase):
         test_probability = 5
 
         with self.assertRaises(Exception) as context:
-            BooleanMetric._get_probability(test_probability)
+            BooleanMetric._check_probability(test_probability)
 
         self.assertEqual(
             str(context.exception),
@@ -69,7 +69,7 @@ class BooleanMetricTestCase(unittest.TestCase):
         test_probability = -0.1
 
         with self.assertRaises(Exception) as context:
-            BooleanMetric._get_probability(test_probability)
+            BooleanMetric._check_probability(test_probability)
 
         self.assertEqual(
             str(context.exception),

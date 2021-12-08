@@ -1,8 +1,8 @@
 from typing import List
-from typing import Union
 
 import numpy as np
 
+from sample_size.metrics import BaseMetric
 from sample_size.metrics import BooleanMetric
 from sample_size.metrics import NumericMetric
 from sample_size.metrics import RatioMetric
@@ -12,7 +12,8 @@ DEFAULT_POWER = 0.8
 
 
 class SampleSizeCalculator:
-    """This class is to calculate sample size based on variable type
+    """
+    This class is to calculate sample size based on variable type
 
     Attributes:
     alpha: statistical significance
@@ -50,7 +51,7 @@ class SampleSizeCalculator:
         )
         self.ratio_metrics.append(metric)
 
-    def _get_single_sample_size(self, metric: Union[BooleanMetric, NumericMetric, RatioMetric]) -> float:
+    def _get_single_sample_size(self, metric: BaseMetric) -> float:
         effect_size = metric.mde / float(np.sqrt(metric.variance))
         power_analysis = metric.default_power_analysis_instance
         sample_size = int(
