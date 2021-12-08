@@ -1,10 +1,9 @@
 from typing import Dict
 from typing import Tuple
-from typing import Union
 
+from sample_size.sample_size_calculator import DEFAULT_ALPHA
 from sample_size.sample_size_calculator import SampleSizeCalculator
 
-DEFAULT_ALPHA = 0.05
 METRIC_PARAMETERS = {
     "boolean": {"probability": "baseline probability (between 0 and 1)"},
     "numeric": {"variance": "variance of the baseline metric"},
@@ -34,14 +33,14 @@ def get_float(input_str: str, input_name: str) -> float:
         raise Exception(f"Error: Please enter a float for the {input_name}.")
 
 
-def get_alpha() -> Union[float, None]:
+def get_alpha() -> float:
     alpha_input = input(
-        "Enter the alpha between (between 0 and 0.3 inclusively) " "or press Enter to use default alpha=0.05: "
+        "Enter the alpha between (between 0 and 0.3 inclusively) or press Enter to use default alpha=0.05: "
     ).strip()
 
     if alpha_input == "":
-        print("Using default alpha (0.05) and power (0.8)...")
-        return None
+        print("Using default alpha (0.05) and default power (0.8)...")
+        return DEFAULT_ALPHA
     else:
         alpha = get_float(alpha_input, "alpha")
         if 0 < alpha <= 0.3:
@@ -62,7 +61,7 @@ def get_mde(metric_type: str) -> float:
     return mde
 
 
-def get_metric_type_from_input() -> str:
+def get_metric_type() -> str:
     metric_type = input("Enter metric type (Boolean, Numeric, Ratio): ").strip().lower()
     if metric_type in ["boolean", "numeric", "ratio"]:
         return metric_type
@@ -81,7 +80,7 @@ def get_variable_parameters(parameter_definitions: Dict[str, str]) -> Dict[str, 
 
 
 def get_metric_metadata_from_input() -> Tuple[str, Dict[str, float]]:
-    metric_type = get_metric_type_from_input().lower()
+    metric_type = get_metric_type().lower()
     metric_metadata = get_variable_parameters(METRIC_PARAMETERS[metric_type])
     metric_metadata["mde"] = get_mde(metric_type)
 

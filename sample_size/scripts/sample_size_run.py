@@ -20,10 +20,7 @@ def main() -> None:
     try:
         # Get alpha for power analysis
         alpha = get_alpha()
-        if alpha:
-            calculator = SampleSizeCalculator(alpha)
-        else:
-            calculator = SampleSizeCalculator()
+        calculator = SampleSizeCalculator(alpha)
 
         # register metric
         metric_type, metric_metadata = get_metric_metadata_from_input()
