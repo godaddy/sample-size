@@ -132,11 +132,11 @@ Install pyenv [here]https://github.com/pyenv/pyenv#installation)
 Install and set python version with pyenv:
 
 ```console
-pyenv install 3.7.8
-pyenv local 3.7.8
+pyenv install 3.9.9
+pyenv local 3.9.9
 ```
 
-Note: You are welcome to use any python version >= 3.7.1
+Note: You are welcome to use any python version between 3.7.1 and 3.10
 
 To validate that your poetry venv is using the correct python version
 

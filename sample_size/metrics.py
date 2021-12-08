@@ -43,7 +43,7 @@ class BooleanMetric(BaseMetric):
         mde: float,
     ):
         super(BooleanMetric, self).__init__(mde)
-        self.probability = self._get_probability(probability)
+        self.probability = self._check_probability(probability)
 
     @property
     def variance(self) -> float:
@@ -54,7 +54,7 @@ class BooleanMetric(BaseMetric):
         return NormalIndPower()
 
     @staticmethod
-    def _get_probability(probability: float) -> float:
+    def _check_probability(probability: float) -> float:
         if 0 <= probability <= 1:
             return probability
         else:
@@ -101,11 +101,9 @@ class RatioMetric(BaseMetric):
     ):
         super(RatioMetric, self).__init__(mde)
         self.numerator_mean = numerator_mean
-        self.check_positive(numerator_variance, "variance")
-        self.numerator_variance = numerator_variance
+        self.numerator_variance = self.check_positive(numerator_variance, "numerator variance")
         self.denominator_mean = denominator_mean
-        self.check_positive(denominator_variance, "variance")
-        self.denominator_variance = denominator_variance
+        self.denominator_variance = self.check_positive(denominator_variance, "denominator variance")
         self.covariance = covariance
 
     @property
