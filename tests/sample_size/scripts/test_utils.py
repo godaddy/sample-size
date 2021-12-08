@@ -28,7 +28,7 @@ class UtilsTestCase(unittest.TestCase):
 
         self.assertEqual(result, False)
 
-    def test_get_float_float(self):
+    def test_get_float_success(self):
         test_input_str = " 0.05"
         result = utils.get_float(test_input_str, self.TEST_STR)
 
@@ -49,7 +49,7 @@ class UtilsTestCase(unittest.TestCase):
     @patch("sample_size.scripts.utils.input")
     def test_get_alpha(self, mock_input, mock_get_float):
         test_input_float = 0.01
-        test_input_str = "n"
+        test_input_str = "0.01"
         mock_input.return_value = test_input_str
         mock_get_float.return_value = test_input_float
 
@@ -79,13 +79,14 @@ class UtilsTestCase(unittest.TestCase):
             )
 
         self.assertEqual(alpha, DEFAULT_ALPHA)
+        mock_input.assert_called_once()
         mock_get_float.assert_not_called()
 
     @patch("sample_size.scripts.utils.get_float")
     @patch("sample_size.scripts.utils.input")
     def test_get_alpha_error(self, mock_input, mock_get_float):
         test_input_float = 0.5
-        mock_input.return_value = "n"
+        mock_input.return_value = "0.5"
         mock_get_float.return_value = test_input_float
 
         with self.assertRaises(Exception) as context:
@@ -95,6 +96,8 @@ class UtilsTestCase(unittest.TestCase):
             context.exception.args[0],
             "Error: Please provide a float between 0 and 0.3 for alpha.",
         )
+        mock_input.assert_called_once()
+        mock_get_float.assert_called_once()
 
     @patch("sample_size.scripts.utils.get_float")
     @patch("sample_size.scripts.utils.input")
@@ -110,6 +113,8 @@ class UtilsTestCase(unittest.TestCase):
             context.exception.args[0],
             "Error: Please provide a float between 0 and 0.3 for alpha.",
         )
+        mock_input.assert_called_once()
+        mock_get_float.assert_called_once()
 
     @patch("sample_size.scripts.utils.get_float")
     @patch("sample_size.scripts.utils.input")
