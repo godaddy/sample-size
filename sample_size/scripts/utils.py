@@ -2,7 +2,6 @@ from typing import Dict
 from typing import Tuple
 
 from sample_size.sample_size_calculator import DEFAULT_ALPHA
-from sample_size.sample_size_calculator import SampleSizeCalculator
 
 METRIC_PARAMETERS = {
     "boolean": {"probability": "baseline probability (between 0 and 1)"},
@@ -69,7 +68,7 @@ def get_metric_type() -> str:
         raise Exception("Error: Unexpected metric type. Please enter Boolean, Numeric, or Ratio.")
 
 
-def get_variable_parameters(parameter_definitions: Dict[str, str]) -> Dict[str, float]:
+def get_metric_parameters(parameter_definitions: Dict[str, str]) -> Dict[str, float]:
 
     parameters = {}
 
@@ -79,24 +78,9 @@ def get_variable_parameters(parameter_definitions: Dict[str, str]) -> Dict[str, 
     return parameters
 
 
-def get_metric_metadata_from_input() -> Tuple[str, Dict[str, float]]:
+def get_metric_metadata() -> Tuple[str, Dict[str, float]]:
     metric_type = get_metric_type().lower()
-    metric_metadata = get_variable_parameters(METRIC_PARAMETERS[metric_type])
+    metric_metadata = get_metric_parameters(METRIC_PARAMETERS[metric_type])
     metric_metadata["mde"] = get_mde(metric_type)
 
     return metric_type, metric_metadata
-
-
-def register_metric(
-    metric_type: str,
-    metric_metadata: Dict[str, float],
-    calculator: SampleSizeCalculator,
-) -> None:
-    VAR_REGISTER_FUNC_MAP = {
-        "boolean": "register_bool_metric",
-        "numeric": "register_numeric_metric",
-        "ratio": "register_ratio_metric",
-    }
-
-    register_func = getattr(calculator, VAR_REGISTER_FUNC_MAP[metric_type])
-    register_func(**metric_metadata)

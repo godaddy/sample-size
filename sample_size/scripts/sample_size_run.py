@@ -14,8 +14,7 @@ def main() -> None:
     """
     from sample_size.sample_size_calculator import SampleSizeCalculator
     from sample_size.scripts.utils import get_alpha
-    from sample_size.scripts.utils import get_metric_metadata_from_input
-    from sample_size.scripts.utils import register_metric
+    from sample_size.scripts.utils import get_metric_metadata
 
     try:
         # Get alpha for power analysis
@@ -23,8 +22,8 @@ def main() -> None:
         calculator = SampleSizeCalculator(alpha)
 
         # register metric
-        metric_type, metric_metadata = get_metric_metadata_from_input()
-        register_metric(metric_type, metric_metadata, calculator)
+        metric_type, metric_metadata = get_metric_metadata()
+        calculator.register_metric(metric_type, metric_metadata)
 
         # Get and print sample size based on variable and power analysis parameters
         sample_size = calculator.get_sample_size()

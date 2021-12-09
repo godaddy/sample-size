@@ -3,7 +3,6 @@ from io import StringIO
 from unittest.mock import patch
 
 from sample_size.sample_size_calculator import DEFAULT_ALPHA
-from sample_size.sample_size_calculator import SampleSizeCalculator
 from sample_size.scripts import utils
 
 
@@ -134,7 +133,7 @@ class UtilsTestCase(unittest.TestCase):
         mock_get_float.assert_called_once_with(test_mde, "minimum detectable effect")
 
     @patch("sample_size.scripts.utils.input")
-    def test_get_variable_from_input_boolean(self, mock_input):
+    def test_get_metric_type_boolean(self, mock_input):
         mock_input.return_value = " Boolean "
 
         metric_type = utils.get_metric_type()
@@ -142,7 +141,7 @@ class UtilsTestCase(unittest.TestCase):
         self.assertEqual(metric_type, "boolean")
 
     @patch("sample_size.scripts.utils.input")
-    def test_get_variable_from_input_numeric(self, mock_input):
+    def test_get_metric_type_numeric(self, mock_input):
         mock_input.return_value = " Numeric "
 
         metric_type = utils.get_metric_type()
@@ -150,7 +149,7 @@ class UtilsTestCase(unittest.TestCase):
         self.assertEqual(metric_type, "numeric")
 
     @patch("sample_size.scripts.utils.input")
-    def test_get_variable_from_input_ratio(self, mock_input):
+    def test_get_metric_type_ratio(self, mock_input):
         mock_input.return_value = " Ratio "
 
         metric_type = utils.get_metric_type()
@@ -158,7 +157,7 @@ class UtilsTestCase(unittest.TestCase):
         self.assertEqual(metric_type, "ratio")
 
     @patch("sample_size.scripts.utils.input")
-    def test_get_variable_from_input_error(self, mock_input):
+    def test_get_metric_type_error(self, mock_input):
         mock_input.return_value = "test"
 
         with self.assertRaises(Exception) as context:
@@ -171,7 +170,7 @@ class UtilsTestCase(unittest.TestCase):
 
     @patch("sample_size.scripts.utils.get_float")
     @patch("sample_size.scripts.utils.input")
-    def test_get_variable_parameters(self, mock_input, mock_get_float):
+    def test_get_metric_parameters(self, mock_input, mock_get_float):
         test_input_float = 5
         mock_input.return_value = test_input_float
         mock_get_float.return_value = test_input_float
@@ -180,16 +179,13 @@ class UtilsTestCase(unittest.TestCase):
             "case": "case case",
         }
 
-        result = utils.get_variable_parameters(test_parameter_definitions)
+        result = utils.get_metric_parameters(test_parameter_definitions)
 
-        self.assertEqual(mock_input.call_count, 2)
+        self.assertEqual(mock_input.call_count, len(test_parameter_definitions))
         self.assertEqual(mock_input.call_args_list[0][0][0], "Enter the test test: ")
-        self.assertEqual(mock_input.call_args_list[1][0][0], "Enter the case case: ")
-        self.assertEqual(mock_get_float.call_count, 2)
+        self.assertEqual(mock_get_float.call_count, len(test_parameter_definitions))
         self.assertEqual(mock_get_float.call_args_list[0][0][0], test_input_float)
         self.assertEqual(mock_get_float.call_args_list[0][0][1], "test test")
-        self.assertEqual(mock_get_float.call_args_list[1][0][0], test_input_float)
-        self.assertEqual(mock_get_float.call_args_list[1][0][1], "case case")
         self.assertEqual(
             result,
             {
@@ -199,76 +195,22 @@ class UtilsTestCase(unittest.TestCase):
         )
 
     @patch("sample_size.scripts.utils.get_mde")
-    @patch("sample_size.scripts.utils.get_variable_parameters")
+    @patch("sample_size.scripts.utils.get_metric_parameters")
     @patch("sample_size.scripts.utils.get_metric_type")
-    def test_get_metric_metadata_from_input(self, mock_get_metric_type, mock_get_variable_parameters, mock_get_mde):
+    def test_get_metric_metadata(self, mock_get_metric_type, mock_get_metric_parameters, mock_get_mde):
         test_metric_type = "Boolean"
         test_metric_type_lower = "boolean"
         test_metric_metadata = {"test": 0.01}
         test_mde = 0.05
         mock_get_metric_type.return_value = test_metric_type
-        mock_get_variable_parameters.return_value = test_metric_metadata
+        mock_get_metric_parameters.return_value = test_metric_metadata
         mock_get_mde.return_value = test_mde
         test_metric_metadata = {"test": 0.01, "mde": test_mde}
 
-        metric_type, metric_metadata = utils.get_metric_metadata_from_input()
+        metric_type, metric_metadata = utils.get_metric_metadata()
 
         self.assertEqual(metric_type, test_metric_type_lower)
         self.assertEqual(metric_metadata, test_metric_metadata)
         mock_get_metric_type.assert_called_once()
-        mock_get_variable_parameters.assert_called_once_with(utils.METRIC_PARAMETERS[test_metric_type_lower])
+        mock_get_metric_parameters.assert_called_once_with(utils.METRIC_PARAMETERS[test_metric_type_lower])
         mock_get_mde.assert_called_once_with(test_metric_type_lower)
-
-    @patch("sample_size.sample_size_calculator.SampleSizeCalculator.register_bool_metric")
-    def test_register_metric_boolean(self, mock_register_bool_metric):
-        test_metric_type = "boolean"
-        test_probability = 0.05
-        test_mde = 0.02
-        test_metric_metadata = {"probability": test_probability, "mde": test_mde}
-
-        calculator = SampleSizeCalculator()
-        utils.register_metric(test_metric_type, test_metric_metadata, calculator)
-
-        mock_register_bool_metric.assert_called_once_with(probability=test_probability, mde=test_mde)
-
-    @patch("sample_size.sample_size_calculator.SampleSizeCalculator.register_numeric_metric")
-    def test_register_metric_numeric(self, mock_register_numeric_metric):
-        test_metric_type = "numeric"
-        test_variance = 5000.0
-        test_mde = 5.0
-        test_metric_metadata = {"variance": test_variance, "mde": test_mde}
-
-        calculator = SampleSizeCalculator()
-        utils.register_metric(test_metric_type, test_metric_metadata, calculator)
-
-        mock_register_numeric_metric.assert_called_once_with(variance=test_variance, mde=test_mde)
-
-    @patch("sample_size.sample_size_calculator.SampleSizeCalculator.register_ratio_metric")
-    def test_register_metric_ratio(self, mock_register_ratio_metric):
-        test_metric_type = "ratio"
-        test_numerator_mean = 2000.0
-        test_numerator_variance = 100000.0
-        test_denominator_mean = 200.0
-        test_denominator_variance = 2000.0
-        test_covariance = 5000.0
-        test_mde = 5.0
-        test_metric_metadata = {
-            "numerator_mean": test_numerator_mean,
-            "numerator_variance": test_numerator_variance,
-            "denominator_mean": test_denominator_mean,
-            "denominator_variance": test_denominator_variance,
-            "covariance": test_covariance,
-            "mde": test_mde,
-        }
-
-        calculator = SampleSizeCalculator()
-        utils.register_metric(test_metric_type, test_metric_metadata, calculator)
-
-        mock_register_ratio_metric.assert_called_once_with(
-            numerator_mean=test_numerator_mean,
-            numerator_variance=test_numerator_variance,
-            denominator_mean=test_denominator_mean,
-            denominator_variance=test_denominator_variance,
-            covariance=test_covariance,
-            mde=test_mde,
-        )
