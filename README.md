@@ -2,13 +2,13 @@
 
 This python project is a helper package that uses power analysis to calculate required sample size for any experiment.
 
-# Get Started
-```buildoutcfg
+## Script Usage Guide
+```
 pip install sample-size
 run-sample-size
 ```
 
-# Notes
+## Script Constraints
 * This package supports 
   * Single metric per calculator for now
   * Metric types: Boolean, Numeric, and Ratio

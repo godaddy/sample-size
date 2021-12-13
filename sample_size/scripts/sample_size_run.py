@@ -13,8 +13,8 @@ def main() -> None:
         2. the calculator supports single metric per calculator for now
     """
     from sample_size.sample_size_calculator import SampleSizeCalculator
-    from sample_size.scripts.utils import get_alpha
-    from sample_size.scripts.utils import get_metric_metadata
+    from sample_size.scripts.input_utils import get_alpha
+    from sample_size.scripts.input_utils import get_metric_metadata
 
     try:
         # Get alpha for power analysis
@@ -30,7 +30,6 @@ def main() -> None:
         print("\nSample size needed in each group: {:.3f}".format(sample_size))
     except Exception as e:
         print(f"Error! The calculator isn't able to calculate sample size due to \n{e}")
-        return
 
 
 if __name__ == "__main__":

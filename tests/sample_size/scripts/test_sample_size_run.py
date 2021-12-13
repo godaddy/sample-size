@@ -13,8 +13,8 @@ class TestMain(unittest.TestCase):
         self.DEFAULT_SAMPLE_SIZE = 2000
 
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator")
-    @patch("sample_size.scripts.utils.get_metric_metadata")
-    @patch("sample_size.scripts.utils.get_alpha")
+    @patch("sample_size.scripts.input_utils.get_metric_metadata")
+    @patch("sample_size.scripts.input_utils.get_alpha")
     def test_main_alpha_input(
         self,
         mock_get_alpha,
@@ -45,8 +45,8 @@ class TestMain(unittest.TestCase):
         mock_calculator.assert_called_once_with(test_alpha)
 
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator")
-    @patch("sample_size.scripts.utils.get_metric_metadata")
-    @patch("sample_size.scripts.utils.get_alpha")
+    @patch("sample_size.scripts.input_utils.get_metric_metadata")
+    @patch("sample_size.scripts.input_utils.get_alpha")
     def test_main_exception_print(
         self,
         mock_get_alpha,

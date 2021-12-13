@@ -3,6 +3,9 @@ from typing import Tuple
 
 from sample_size.sample_size_calculator import DEFAULT_ALPHA
 
+# Consider simplify the code using https://github.com/pallets/click/
+
+
 METRIC_PARAMETERS = {
     "boolean": {"probability": "baseline probability (between 0 and 1)"},
     "numeric": {"variance": "variance of the baseline metric"},
@@ -16,7 +19,7 @@ METRIC_PARAMETERS = {
 }
 
 
-def is_float(value: str) -> float:
+def is_float(value: str) -> bool:
     try:
         float(value)
         return True
@@ -29,7 +32,7 @@ def get_float(input_str: str, input_name: str) -> float:
     if is_float(input_str):
         return float(input_str)
     else:
-        raise Exception(f"Error: Please enter a float for the {input_name}.")
+        raise ValueError(f"Error: Please enter a float for the {input_name}.")
 
 
 def get_alpha() -> float:
@@ -46,7 +49,7 @@ def get_alpha() -> float:
             print(f"Using alpha ({alpha}) and default power (0.8)...")
             return alpha
         else:
-            raise Exception("Error: Please provide a float between 0 and 0.3 for alpha.")
+            raise ValueError("Error: Please provide a float between 0 and 0.3 for alpha.")
 
 
 def get_mde(metric_type: str) -> float:
@@ -65,11 +68,10 @@ def get_metric_type() -> str:
     if metric_type in ["boolean", "numeric", "ratio"]:
         return metric_type
     else:
-        raise Exception("Error: Unexpected metric type. Please enter Boolean, Numeric, or Ratio.")
+        raise ValueError("Error: Unexpected metric type. Please enter Boolean, Numeric, or Ratio.")
 
 
 def get_metric_parameters(parameter_definitions: Dict[str, str]) -> Dict[str, float]:
-
     parameters = {}
 
     for parameter_name, parameter_definition in parameter_definitions.items():
