@@ -3,12 +3,40 @@
 This python project is a helper package that uses power analysis to calculate required sample size for any experiment.
 
 ## Script Usage Guide
+
+Sample size script lets you get the sample size estimation easily by providing metric inputs.
+
+### Requirements
+
+Please make sure you have [Python 3](https://www.python.org/downloads/) installed before using the script.
+
+**Verify Python was installed** 
+
+```bash
+python -V # python version should >=3.7.1, <3.11
 ```
+
+**Verify pip was installed** 
+```bash
+pip -V 
+```
+
+### Install the package
+
+```bash
 pip install sample-size
+pip show sample-size # verify package was installed
+```
+
+### Start using the script
+
+`run-sample-size` will promp you questions for you to enter the input it needs
+
+```bash
 run-sample-size
 ```
 
-## Script Constraints
+### Script Constraints
 * This package supports 
   * Single metric per calculator for now
   * Metric types: Boolean, Numeric, and Ratio
