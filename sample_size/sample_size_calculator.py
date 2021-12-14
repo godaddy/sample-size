@@ -1,3 +1,4 @@
+from typing import Dict
 from typing import List
 
 import numpy as np
@@ -13,7 +14,7 @@ DEFAULT_POWER = 0.8
 
 class SampleSizeCalculator:
     """
-    This class is to calculate sample size based on variable type
+    This class is to calculate sample size based on metric type
 
     Attributes:
     alpha: statistical significance
@@ -80,3 +81,13 @@ class SampleSizeCalculator:
                 sample_size = self._get_single_sample_size(ratio_metric)
 
         return sample_size
+
+    def register_metric(self, metric_type: str, metric_metadata: Dict[str, float]) -> None:
+        VAR_REGISTER_FUNC_MAP = {
+            "boolean": "register_bool_metric",
+            "numeric": "register_numeric_metric",
+            "ratio": "register_ratio_metric",
+        }
+
+        register_func = getattr(self, VAR_REGISTER_FUNC_MAP[metric_type])
+        register_func(**metric_metadata)
