@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sample-size"
-version = "0.0.1a1"
+version = "1.0.0"
 description = "A python module implementing power analysis to estimate sample size"
 authors = []
 include = ["CHANGELOG.md", "README.md"]
@@ -72,7 +72,7 @@ testpaths = ["tests"]
 
 [tool.coverage.run]
 branch = true
-source = ["sample_size", "scripts"]
+source = ["sample_size"]
 
 [tool.coverage.report]
 exclude_lines = [
