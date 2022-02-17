@@ -127,7 +127,7 @@ You could use pyenv with poetry together by following [this section](#setup-with
 
 It is recommended to use pyenv to switch between Python versions:
 
-Install pyenv [here]https://github.com/pyenv/pyenv#installation)
+Install pyenv [here](https://github.com/pyenv/pyenv#installation)
 
 Install and set python version with pyenv:
 
