@@ -20,7 +20,7 @@ black = "^21.7b0"
 mypy = "^0.941"
 pytest = "^6.2.2"
 pytest-sugar = "^0.9.4"
-pytest-cov = "^2.11.1"
+pytest-cov = "^3.0.0"
 
 [tool.poetry.scripts]
 qa = "poetry_scripts:qa"
