@@ -86,3 +86,22 @@ def get_metric_metadata() -> Tuple[str, Dict[str, float]]:
     metric_metadata["mde"] = get_mde(metric_type)
 
     return metric_type, metric_metadata
+
+
+def get_int(input_str: str, input_name: str) -> float:
+    input_str = input_str.strip()
+    if is_float(input_str):
+        return int(input_str)
+    else:
+        raise ValueError(f"Error: Please enter an integer for the {input_name}.")
+
+
+def get_number_of_tests() -> Tuple[float, float]:
+    number_of_metrics = get_int(
+        input("Enter the number of decision metrics for this test: "), "number of decision metrics"
+    )
+    number_of_variants = get_int(
+        input("Enter the number of cohorts for this test \n" "Control + number of treatments: "), "number of variants"
+    )
+
+    return number_of_variants, number_of_metrics

@@ -15,14 +15,18 @@ class TestMain(unittest.TestCase):
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator")
     @patch("sample_size.scripts.input_utils.get_metric_metadata")
     @patch("sample_size.scripts.input_utils.get_alpha")
+    @patch("sample_size.scripts.input_utils.get_number_of_tests")
     def test_main_alpha_input(
         self,
         mock_get_alpha,
+        mock_get_number_of_tests,
         get_metric_metadata,
         mock_calculator,
     ):
         test_alpha = 0.01
+        test_number = [2, 1]
         mock_get_alpha.return_value = test_alpha
+        mock_get_number_of_tests.return_value = test_number
         get_metric_metadata.return_value = (self.DEFAULT_METRIC_TYPE, self.DEFAULT_METRIC_METADATA)
         calculator_obj = MagicMock()
         calculator_obj.get_sample_size.return_value = self.DEFAULT_SAMPLE_SIZE
