@@ -96,12 +96,19 @@ def get_int(input_str: str, input_name: str) -> float:
         raise ValueError(f"Error: Please enter an integer for the {input_name}.")
 
 
-def get_number_of_tests() -> Tuple[float, float]:
-    number_of_metrics = get_int(
-        input("Enter the number of decision metrics for this test: "), "number of decision metrics"
-    )
+def get_variants() -> int:
+    print(f"")
     number_of_variants = get_int(
         input("Enter the number of cohorts for this test \n" "Control + number of treatments: "), "number of variants"
     )
+    return number_of_variants
 
-    return number_of_variants, number_of_metrics
+
+def register_another_metric() -> bool:
+    register = input("Are you going to register another metric? (Y/N)")
+    if register == "Y" or register == "y":
+        return True
+    elif register == "N" or register == "n" or register == "":
+        return False
+    else:
+        raise ValueError(f"Error: Please enter 'Y' or 'N'.")

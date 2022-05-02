@@ -118,5 +118,5 @@ class RatioMetric(BaseMetric):
         return variance
 
     @property
-    def default_power_analysis_instance(self) -> TTestIndPower:
-        return TTestIndPower()
+    def default_power_analysis_instance(self) -> NormalIndPower:
+        return NormalIndPower()
