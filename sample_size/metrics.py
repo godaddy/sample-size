@@ -1,18 +1,31 @@
 from abc import ABCMeta
 from abc import abstractmethod
 from typing import Union
+from math import sqrt
 
 from statsmodels.stats.power import NormalIndPower
 from statsmodels.stats.power import TTestIndPower
 
 
 class BaseMetric:
-
     __metaclass__ = ABCMeta
     mde: float
 
     def __init__(self, mde: float):
         self.mde = mde
+
+    def single_sample_size(self, alpha: float, power: float) -> int:
+        effect_size = self.mde / float(sqrt(self.variance))
+
+        return int(
+            self.default_power_analysis_instance.solve_power(
+                effect_size=effect_size,
+                alpha=alpha,
+                power=power,
+                ratio=1,
+                alternative="two-sided",
+            )
+        )
 
     @property
     @abstractmethod
@@ -33,7 +46,6 @@ class BaseMetric:
 
 
 class BooleanMetric(BaseMetric):
-
     probability: float
     mde: float
 
@@ -62,7 +74,6 @@ class BooleanMetric(BaseMetric):
 
 
 class NumericMetric(BaseMetric):
-
     mde: float
 
     def __init__(
@@ -83,7 +94,6 @@ class NumericMetric(BaseMetric):
 
 
 class RatioMetric(BaseMetric):
-
     numerator_mean: float
     numerator_variance: float
     denominator_mean: float
@@ -108,7 +118,6 @@ class RatioMetric(BaseMetric):
 
     @property
     def variance(self) -> float:
-
         variance = (
             self.numerator_variance / self.denominator_mean ** 2
             + self.denominator_variance * self.numerator_mean ** 2 / self.denominator_mean ** 4

@@ -29,8 +29,8 @@ def main() -> None:
         while register:
             metric_type, metric_metadata = get_metric_metadata()
             for v in range(int(variants) - 1):
-                print(f'Treatment {v + 1}')
                 if v > 0:
+                    print(f'Treatment {v + 1}')
                     metric_metadata["mde"] = get_mde(metric_type)
 
                 calculator.register_metric(metric_type, metric_metadata)

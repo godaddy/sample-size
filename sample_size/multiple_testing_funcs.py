@@ -1,93 +1,80 @@
-from itertools import product
 from typing import List
 from typing import Tuple
-from typing import Union
 
 import numpy as np
 from scipy import stats
 from statsmodels.stats.multitest import multipletests
-from statsmodels.stats.power import NormalIndPower
-from statsmodels.stats.power import TTestIndPower
 from sample_size.metrics import BaseMetric
 
 
-def get_multiple_sample_size(self, d: float, power_analysis: Union[NormalIndPower, TTestIndPower]) -> int:
-    m = (len(self.boolean_metrics) + len(self.numeric_metrics) + len(self.ratio_metrics)) * self.variants
-    # calculate required sample size based on minimum standardized effect size since it requires maximum sample size
-    lower = power_analysis.solve_power(
-        effect_size=d, alpha=self.alpha, power=self.power, ratio=1, alternative="two-sided"
-    )
-    upper = power_analysis.solve_power(
-        effect_size=d, alpha=self.alpha / m, power=self.power, ratio=1, alternative="two-sided"
-    )
+class MultipleTesting:
+    """
+    This class is to calculate sample size required under the case of multiple testing
 
-    # print(f'We look for the minimum required sample size in range [{int(lower)},{int(upper)}]')
-    for size in np.linspace(lower, upper, 10):
-        expected_power = self.expected_average_power(m, int(size))
-        if expected_power >= self.power:
-            break
-    return int(size)
+    Attributes:
+    metrics: a list of BaseMetric registered by users
+    variants: number of variants, including control
+    alpha: statistical significance
+    power: statistical power
+    """
 
+    def __init__(self, metrics: List[BaseMetric], variants: int, alpha: float, power: float):
+        self.REPLICATION: int = 100
+        self.metrics = metrics
+        self.m = (variants - 1) * len(metrics)
+        self.alpha = alpha
+        self.power = power
 
-def expected_average_power(self, number_of_tests: int, size: int) -> float:
-    m = number_of_tests
-    pp_null, pp_alt = [], []
+    def get_multiple_sample_size(self) -> int:
+        # calculate required sample size based on minimum standardized effect size since it requires maximum sample size
+        lower = max([metric.single_sample_size(self.alpha, self.power) for metric in self.metrics])
+        upper = max([metric.single_sample_size(self.alpha / self.m, self.power) for metric in self.metrics])
 
-    if self.boolean_metrics:
-        for bool_metric in self.boolean_metrics:
-            p_null, p_alt = self.generate_p_value(bool_metric, size)
-            pp_null.append(p_null)
-            pp_alt.append(p_alt)
-    if self.numeric_metrics:
-        for numeric_metric in self.numeric_metrics:
-            p_null, p_alt = self.generate_p_value(numeric_metric, size)
-            pp_null.append(p_null)
-            pp_alt.append(p_alt)
-    if self.ratio_metrics:
-        for ratio_metric in self.ratio_metrics:
-            p_null, p_alt = self.generate_p_value(ratio_metric, size)
-            pp_null.append(p_null)
-            pp_alt.append(p_alt)
+        return self._find_sample_size(lower, upper)
 
-    true_H = [*product([0, 1], repeat=m)][1:]
-    avg_power = 0
-    # 1=rejected, 0=fail to reject
-    rejs = np.empty((self.rep, m))
+    def _find_sample_size(self, lower: float, upper: float, depth=0):
+        MAX_RECURSION_DEPTH = 20
+        EPSILON = 0.025
 
-    for t in range(len(true_H)):
-        null_index = np.argwhere(np.array(true_H[t]) == 0)
-        alt_index = np.argwhere(np.array(true_H[t]) == 1)
+        if depth > MAX_RECURSION_DEPTH:
+            raise RecursionError
 
-        for r in range(self.rep):
-            # first len(true_null_p) hypotheses are true null
-            true_null_p = [float(np.array(pp_null)[x, r]) for x in null_index]
-            true_alt_p = [float(np.array(pp_alt)[x, r]) for x in alt_index]
-            pvalues = np.zeros(m)
-            pvalues[: len(null_index)] = true_null_p
-            pvalues[len(null_index):] = true_alt_p
-            rejs[r, :] = multipletests(pvalues, alpha=self.alpha, method="fdr_bh")[0]
+        candidate = int((upper + lower) / 2)
+        expected_power = self._expected_average_power(candidate)
 
-        actual_pw = np.sum(rejs[:, len(null_index):], axis=1) / len(alt_index)
+        if np.isclose((self.power, expected_power), EPSILON) or np.isclose((candidate, upper), EPSILON):
+            return candidate
 
-        avg_power += np.mean(actual_pw)
+        if expected_power > self.power:
+            return self._find_sample_size(lower, candidate, depth + 1)
+        else:
+            return self._find_sample_size(candidate, upper, depth + 1)
 
-    return avg_power / len(true_H)
+    def _expected_average_power(self, sample_size: int):
+        power = []
+        for m1 in range(1, self.m + 1):
+            alts = np.array([True] * m1 + [False] * (self.m - m1))
+            for _ in range(self.REPLICATION):
+                true_alt = alts[np.random.permutation(self.m)]
+                p_values = [self._generate_p_value(m, true_alt[i], sample_size) for i, m in enumerate(self.metrics)]
+                rejected = multipletests(p_values, alpha=self.alpha, method="fdr_bh")[0]
+                power.append(np.dot(rejected, true_alt) / m1)
 
+        return np.mean(power)
 
-def generate_p_value(self, metric: BaseMetric, size: int) -> Tuple[List[float], List[float]]:
-    metric_type: str = type(metric).__name__
-    p_alt = np.zeros(self.rep)
-    p_null = stats.norm.rvs(0, 1, self.rep)
-    effect_size = metric.mde / float(np.sqrt(metric.variance))
-    z_alt = stats.t.rvs(df=size - 1, loc=effect_size, size=self.rep)
+    def _generate_p_value(self, metric, true_alt: bool, size: int) -> Tuple[List[float], List[float]]:
+        metric_type: str = type(metric).__name__
+        effect_size = metric.mde / np.sqrt(metric.variance / size) if metric_type == 'BooleanMetric' else metric.mde / (
+                2 * np.sqrt(metric.variance / size))
 
-    if metric_type == "BooleanMetric":
-        p_alt = 2 * stats.norm.sf(np.abs(z_alt))
+        if not true_alt:
+            return stats.uniform.rvs(0, 1)
 
-    elif metric_type == "NumericMetric":
-        p_alt = 2 * stats.t.sf(np.abs(z_alt))
+        if metric_type in ["BooleanMetric", "RatioMetric"]:
+            z_alt = stats.t.rvs(df=size - 1, loc=effect_size, size=self.REPLICATION)
+            return 2 * stats.norm.sf(np.abs(z_alt))
 
-    elif metric_type == "RatioMetric":
-        p_alt = 2 * stats.norm.sf(np.abs(z_alt))
-
-    return list(p_null), list(p_alt)
+        elif metric_type == "NumericMetric":
+            nc = np.sqrt(size / 2) * metric.mde / metric.variance
+            t_alt = stats.nct.rvs(nc=nc, df=2 * (size - 1), size=self.REPLICATION)
+            return 2 * stats.t.sf(np.abs(t_alt))

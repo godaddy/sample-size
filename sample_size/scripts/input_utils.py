@@ -3,8 +3,6 @@ from typing import Tuple
 
 from sample_size.sample_size_calculator import DEFAULT_ALPHA
 
-# Consider simplify the code using https://github.com/pallets/click/
-
 
 METRIC_PARAMETERS = {
     "boolean": {"probability": "baseline probability (between 0 and 1)"},
@@ -81,34 +79,26 @@ def get_metric_parameters(parameter_definitions: Dict[str, str]) -> Dict[str, fl
 
 
 def get_metric_metadata() -> Tuple[str, Dict[str, float]]:
-    metric_type = get_metric_type().lower()
+    metric_type = get_metric_type().strip().lower()
     metric_metadata = get_metric_parameters(METRIC_PARAMETERS[metric_type])
     metric_metadata["mde"] = get_mde(metric_type)
 
     return metric_type, metric_metadata
 
 
-def get_int(input_str: str, input_name: str) -> float:
-    input_str = input_str.strip()
-    if is_float(input_str):
-        return int(input_str)
-    else:
-        raise ValueError(f"Error: Please enter an integer for the {input_name}.")
-
-
 def get_variants() -> int:
-    print(f"")
-    number_of_variants = get_int(
-        input("Enter the number of cohorts for this test \n" "Control + number of treatments: "), "number of variants"
-    )
-    return number_of_variants
+    number_of_variants = input("Enter the number of cohorts for this test \n" "Control + number of treatments: ")
+    if number_of_variants.isdigit():
+        return int(number_of_variants)
+    else:
+        raise ValueError("Error: Please enter an integer for the number of variants.")
 
 
 def register_another_metric() -> bool:
-    register = input("Are you going to register another metric? (Y/N)")
-    if register == "Y" or register == "y":
+    register = input("Are you going to register another metric? (y/n)").strip().lower()
+    if register == "y":
         return True
-    elif register == "N" or register == "n" or register == "":
+    elif register in ["n", ""]:
         return False
     else:
-        raise ValueError(f"Error: Please enter 'Y' or 'N'.")
+        raise ValueError(f"Error: Please enter 'y' or 'n'.")
