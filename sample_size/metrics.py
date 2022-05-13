@@ -1,6 +1,8 @@
 from abc import ABCMeta
 from abc import abstractmethod
-from typing import Union, List
+from typing import Any
+from typing import Union
+
 import numpy as np
 from scipy import stats
 from statsmodels.stats.power import NormalIndPower
@@ -33,7 +35,7 @@ class BaseMetric:
             return number
 
     @abstractmethod
-    def generate_p_value(self, true_alt: bool, size: int, variants: int, replication: int) -> List[float]:
+    def generate_p_value(self, true_alt: bool, size: int, variants: int) -> Any:
         raise NotImplementedError
 
 
@@ -65,14 +67,14 @@ class BooleanMetric(BaseMetric):
         else:
             raise ValueError("Error: Please provide a float between 0 and 1 for probability.")
 
-    def generate_p_value(self, true_alt: bool, size: int, variants: int, replication: int) -> List[float]:
-        shift = self.mde / np.sqrt(self.variance / size)
-
+    def generate_p_value(self, true_alt: bool, size: int, variants: int) -> Any:
         if not true_alt:
-            return stats.uniform.rvs(0, 1)
+            return stats.uniform.rvs(0, 1, size=variants - 1)
 
-        z_alt = stats.t.rvs(df=size - 1, loc=shift, size=replication*(variants-1))
-        return 2 * stats.norm.sf(np.abs(z_alt))
+        else:
+            nc = np.sqrt(size / 2) * self.mde / self.variance
+            z_alt = stats.nct.rvs(nc=nc, df=2 * (size - 1), size=variants - 1)
+            return 2 * stats.norm.sf(np.abs(z_alt))
 
 
 class NumericMetric(BaseMetric):
@@ -95,13 +97,13 @@ class NumericMetric(BaseMetric):
     def power_analysis_instance(self) -> TTestIndPower:
         return TTestIndPower()
 
-    def generate_p_value(self, true_alt: bool, size: int, variants: int, replication: int) -> List[float]:
+    def generate_p_value(self, true_alt: bool, size: int, variants: int) -> Any:
         if not true_alt:
-            return stats.uniform.rvs(0, 1, variants-1)
+            return stats.uniform.rvs(0, 1, size=variants - 1)
 
         else:
             nc = np.sqrt(size / 2) * self.mde / self.variance
-            t_alt = stats.nct.rvs(nc=nc, df=2 * (size - 1), size=replication*(variants-1))
+            t_alt = stats.nct.rvs(nc=nc, df=2 * (size - 1), size=variants - 1)
             return 2 * stats.t.sf(np.abs(t_alt))
 
 
@@ -144,11 +146,11 @@ class RatioMetric(BaseMetric):
     def power_analysis_instance(self) -> NormalIndPower:
         return NormalIndPower()
 
-    def generate_p_value(self, true_alt: bool, size: int, variants: int, replication: int) -> List[float]:
-        shift = self.mde / (2 * np.sqrt(self.variance / size))
-
+    def generate_p_value(self, true_alt: bool, size: int, variants: int) -> Any:
         if not true_alt:
-            return stats.uniform.rvs(0, 1)
+            return stats.uniform.rvs(0, 1, size=variants - 1)
 
-        z_alt = stats.t.rvs(df=size - 1, loc=shift, size=replication*(variants-1))
-        return 2 * stats.norm.sf(np.abs(z_alt))
+        else:
+            nc = np.sqrt(size / 2) * self.mde / self.variance
+            z_alt = stats.nct.rvs(nc=nc, df=2 * (size - 1), size=variants - 1)
+            return 2 * stats.norm.sf(np.abs(z_alt))

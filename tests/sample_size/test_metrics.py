@@ -42,7 +42,7 @@ class BooleanMetricTestCase(unittest.TestCase):
         self.assertEqual(boolean.probability, self.DEFAULT_PROBABILITY)
         self.assertEqual(boolean.variance, self.DEFAULT_MOCK_VARIANCE)
         self.assertEqual(boolean.mde, self.DEFAULT_MDE)
-        self.assertIsInstance(boolean.default_power_analysis_instance, NormalIndPower)
+        self.assertIsInstance(boolean.power_analysis_instance, NormalIndPower)
 
     def test_boolean_metric_variance(self):
         boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE)
@@ -88,7 +88,7 @@ class NumericMetricTestCase(unittest.TestCase):
 
         self.assertEqual(numeric.variance, self.DEFAULT_VARIANCE)
         self.assertEqual(numeric.mde, self.DEFAULT_MDE)
-        self.assertIsInstance(numeric.default_power_analysis_instance, TTestIndPower)
+        self.assertIsInstance(numeric.power_analysis_instance, TTestIndPower)
 
 
 class RatioMetricTestCase(unittest.TestCase):
@@ -120,7 +120,7 @@ class RatioMetricTestCase(unittest.TestCase):
         self.assertEqual(ratio.covariance, self.DEFAULT_COVARIANCE)
         self.assertEqual(ratio.variance, self.DEFAULT_VARIANCE)
         self.assertEqual(ratio.mde, self.DEFAULT_MDE)
-        self.assertIsInstance(ratio.default_power_analysis_instance, TTestIndPower)
+        self.assertIsInstance(ratio.power_analysis_instance, NormalIndPower)
 
     def test_ratio_metric_variance(self):
         ratio = RatioMetric(
