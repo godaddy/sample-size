@@ -1,7 +1,8 @@
 from abc import ABCMeta
 from abc import abstractmethod
-from typing import Union
-
+from typing import Union, List
+import numpy as np
+from scipy import stats
 from statsmodels.stats.power import NormalIndPower
 from statsmodels.stats.power import TTestIndPower
 
@@ -16,7 +17,7 @@ class BaseMetric:
 
     @property
     @abstractmethod
-    def default_power_analysis_instance(self) -> Union[NormalIndPower, TTestIndPower]:
+    def power_analysis_instance(self) -> Union[NormalIndPower, TTestIndPower]:
         raise NotImplementedError
 
     @property
@@ -30,6 +31,10 @@ class BaseMetric:
             raise ValueError(f"Error: Please provide a positive number for {name}.")
         else:
             return number
+
+    @abstractmethod
+    def generate_p_value(self, true_alt: bool, size: int, variants: int, replication: int) -> List[float]:
+        raise NotImplementedError
 
 
 class BooleanMetric(BaseMetric):
@@ -50,7 +55,7 @@ class BooleanMetric(BaseMetric):
         return self.probability * (1 - self.probability)
 
     @property
-    def default_power_analysis_instance(self) -> NormalIndPower:
+    def power_analysis_instance(self) -> NormalIndPower:
         return NormalIndPower()
 
     @staticmethod
@@ -59,6 +64,15 @@ class BooleanMetric(BaseMetric):
             return probability
         else:
             raise ValueError("Error: Please provide a float between 0 and 1 for probability.")
+
+    def generate_p_value(self, true_alt: bool, size: int, variants: int, replication: int) -> List[float]:
+        shift = self.mde / np.sqrt(self.variance / size)
+
+        if not true_alt:
+            return stats.uniform.rvs(0, 1)
+
+        z_alt = stats.t.rvs(df=size - 1, loc=shift, size=replication*(variants-1))
+        return 2 * stats.norm.sf(np.abs(z_alt))
 
 
 class NumericMetric(BaseMetric):
@@ -78,8 +92,17 @@ class NumericMetric(BaseMetric):
         return self._variance
 
     @property
-    def default_power_analysis_instance(self) -> TTestIndPower:
+    def power_analysis_instance(self) -> TTestIndPower:
         return TTestIndPower()
+
+    def generate_p_value(self, true_alt: bool, size: int, variants: int, replication: int) -> List[float]:
+        if not true_alt:
+            return stats.uniform.rvs(0, 1, variants-1)
+
+        else:
+            nc = np.sqrt(size / 2) * self.mde / self.variance
+            t_alt = stats.nct.rvs(nc=nc, df=2 * (size - 1), size=replication*(variants-1))
+            return 2 * stats.t.sf(np.abs(t_alt))
 
 
 class RatioMetric(BaseMetric):
@@ -118,5 +141,14 @@ class RatioMetric(BaseMetric):
         return variance
 
     @property
-    def default_power_analysis_instance(self) -> TTestIndPower:
-        return TTestIndPower()
+    def power_analysis_instance(self) -> NormalIndPower:
+        return NormalIndPower()
+
+    def generate_p_value(self, true_alt: bool, size: int, variants: int, replication: int) -> List[float]:
+        shift = self.mde / (2 * np.sqrt(self.variance / size))
+
+        if not true_alt:
+            return stats.uniform.rvs(0, 1)
+
+        z_alt = stats.t.rvs(df=size - 1, loc=shift, size=replication*(variants-1))
+        return 2 * stats.norm.sf(np.abs(z_alt))
