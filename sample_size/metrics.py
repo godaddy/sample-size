@@ -104,7 +104,7 @@ class NumericMetric(BaseMetric):
         else:
             nc = np.sqrt(size / 2) * self.mde / self.variance
             t_alt = stats.nct.rvs(nc=nc, df=2 * (size - 1), size=variants - 1)
-            return 2 * stats.t.sf(np.abs(t_alt))
+            return 2 * stats.t.sf(np.abs(t_alt), 2 * (size - 1))
 
 
 class RatioMetric(BaseMetric):
