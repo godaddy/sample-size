@@ -36,6 +36,17 @@ class BaseMetric:
 
     @abstractmethod
     def generate_p_value(self, true_alt: bool, size: int, variants: int) -> Any:
+        """
+        This method simulates registered metric's p-value(s). The output will later be applied to BH procedure
+
+        Parameters:
+            true_alt: whether the alternative hypothesis is true
+            size: sample size used for simulations
+            variants: number of test variants, including control
+
+        Returns:
+            p-value(s): the p-values generated. This is a float or a list with length variants-1
+        """
         raise NotImplementedError
 
 
