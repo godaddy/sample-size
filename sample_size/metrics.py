@@ -1,6 +1,5 @@
 from abc import ABCMeta
 from abc import abstractmethod
-from typing import Any
 from typing import Union
 
 import numpy as np
@@ -35,13 +34,13 @@ class BaseMetric:
             return number
 
     @abstractmethod
-    def generate_p_value(self, true_alt: bool, size: int, variants: int) -> Any:
+    def generate_p_value(self, true_null: bool, sample_size: int, variants: int) -> np.typing.NDArray[np.float64]:
         """
         This method simulates registered metric's p-value(s). The output will later be applied to BH procedure
 
         Parameters:
-            true_alt: whether the alternative hypothesis is true
-            size: sample size used for simulations
+            true_null: whether the null hypothesis is true
+            sample_size: sample size used for simulations
             variants: number of test variants, including control
 
         Returns:
@@ -78,14 +77,14 @@ class BooleanMetric(BaseMetric):
         else:
             raise ValueError("Error: Please provide a float between 0 and 1 for probability.")
 
-    def generate_p_value(self, true_alt: bool, size: int, variants: int) -> Any:
-        if not true_alt:
-            return stats.uniform.rvs(0, 1, size=variants - 1)
+    def generate_p_value(self, true_null: bool, sample_size: int, variants: int) -> np.typing.NDArray[np.float64]:
+        if true_null:
+            return np.array(stats.uniform.rvs(0, 1, size=variants - 1))
 
         else:
-            nc = np.sqrt(size / 2) * self.mde / self.variance
-            z_alt = stats.nct.rvs(nc=nc, df=2 * (size - 1), size=variants - 1)
-            return 2 * stats.norm.sf(np.abs(z_alt))
+            effect_size = self.mde / float(np.sqrt(2 * self.variance / sample_size))
+            z_alt = stats.norm.rvs(loc=effect_size, size=variants - 1)
+            return np.array(2 * stats.norm.sf(np.abs(z_alt)))
 
 
 class NumericMetric(BaseMetric):
@@ -108,14 +107,14 @@ class NumericMetric(BaseMetric):
     def power_analysis_instance(self) -> TTestIndPower:
         return TTestIndPower()
 
-    def generate_p_value(self, true_alt: bool, size: int, variants: int) -> Any:
-        if not true_alt:
-            return stats.uniform.rvs(0, 1, size=variants - 1)
+    def generate_p_value(self, true_null: bool, sample_size: int, variants: int) -> np.typing.NDArray[np.float64]:
+        if true_null:
+            return np.array(stats.uniform.rvs(0, 1, size=variants - 1))
 
         else:
-            nc = np.sqrt(size / 2) * self.mde / self.variance
-            t_alt = stats.nct.rvs(nc=nc, df=2 * (size - 1), size=variants - 1)
-            return 2 * stats.t.sf(np.abs(t_alt), 2 * (size - 1))
+            nc = np.sqrt(sample_size / 2) * self.mde / self.variance
+            t_alt = stats.nct.rvs(nc=nc, df=2 * (sample_size - 1), size=variants - 1)
+            return np.array(2 * (stats.t.sf(np.abs(t_alt), 2 * (sample_size - 1))))
 
 
 class RatioMetric(BaseMetric):
@@ -157,11 +156,11 @@ class RatioMetric(BaseMetric):
     def power_analysis_instance(self) -> NormalIndPower:
         return NormalIndPower()
 
-    def generate_p_value(self, true_alt: bool, size: int, variants: int) -> Any:
-        if not true_alt:
-            return stats.uniform.rvs(0, 1, size=variants - 1)
+    def generate_p_value(self, true_null: bool, sample_size: int, variants: int) -> np.typing.NDArray[np.float64]:
+        if true_null:
+            return np.array(stats.uniform.rvs(0, 1, size=variants - 1))
 
         else:
-            nc = np.sqrt(size / 2) * self.mde / self.variance
-            z_alt = stats.nct.rvs(nc=nc, df=2 * (size - 1), size=variants - 1)
-            return 2 * stats.norm.sf(np.abs(z_alt))
+            effect_size = self.mde / float(np.sqrt(2 * self.variance / sample_size))
+            z_alt = stats.norm.rvs(loc=effect_size, size=variants - 1)
+            return np.array(2 * (stats.norm.sf(np.abs(z_alt))))
