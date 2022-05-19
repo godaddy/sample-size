@@ -22,7 +22,6 @@ pytest = "^7.0.0"
 pytest-sugar = "^0.9.4"
 pytest-cov = "^3.0.0"
 parameterized = "^0.8.1"
-numpy = "^1.22.3"
 
 [tool.poetry.scripts]
 qa = "poetry_scripts:qa"
