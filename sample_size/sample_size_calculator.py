@@ -52,7 +52,7 @@ class SampleSizeCalculator:
         )
         self.ratio_metrics.append(metric)
 
-    def _get_single_sample_size(self, metric: BaseMetric) -> float:
+    def get_single_sample_size(self, metric: BaseMetric) -> float:
         effect_size = metric.mde / float(np.sqrt(metric.variance))
         power_analysis = metric.default_power_analysis_instance
         sample_size = int(
