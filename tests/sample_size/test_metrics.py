@@ -101,6 +101,7 @@ class BooleanMetricTestCase(unittest.TestCase):
             effect_sample_size = self.DEFAULT_MDE / float(np.sqrt(2 * self.DEFAULT_MOCK_VARIANCE / sample_size))
             mock_uniform.assert_not_called()
             mock_norm.assert_called_once_with(loc=effect_sample_size, size=variants - 1)
+            self.assertEqual(len(p), len(pval))
 
 
 class NumericMetricTestCase(unittest.TestCase):
@@ -135,6 +136,7 @@ class NumericMetricTestCase(unittest.TestCase):
             nc = np.sqrt(sample_size / 2) * self.DEFAULT_MDE / self.DEFAULT_VARIANCE
             mock_uniform.assert_not_called()
             mock_nct.assert_called_once_with(nc=nc, df=2 * (sample_size - 1), size=variants - 1)
+            self.assertEqual(len(p), len(pval))
 
 
 class RatioMetricTestCase(unittest.TestCase):
@@ -186,7 +188,7 @@ class RatioMetricTestCase(unittest.TestCase):
     @patch("scipy.stats.norm.rvs")
     def test_ratio_generate_p_value(self, true_null, variants, sample_size, mock_norm, mock_uniform, mock_variance):
         p_value_generator = mock_uniform if true_null else mock_norm
-        pval = MagicMock()
+        pval = np.zeros(variants - 1)
         p_value_generator.return_value = pval
         mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_VARIANCE)
 
@@ -209,3 +211,4 @@ class RatioMetricTestCase(unittest.TestCase):
             effect_sample_size = self.DEFAULT_MDE / float(np.sqrt(2 * self.DEFAULT_VARIANCE / sample_size))
             mock_uniform.assert_not_called()
             mock_norm.assert_called_once_with(loc=effect_sample_size, size=variants - 1)
+            self.assertEqual(len(p), len(pval))
