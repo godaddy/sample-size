@@ -21,6 +21,7 @@ mypy = "^0.950"
 pytest = "^7.0.0"
 pytest-sugar = "^0.9.4"
 pytest-cov = "^3.0.0"
+click = "8.0.4"
 
 [tool.poetry.scripts]
 qa = "poetry_scripts:qa"
