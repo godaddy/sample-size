@@ -1,10 +1,8 @@
 from typing import Dict
+from typing import List
 from typing import Tuple
 
 from sample_size.sample_size_calculator import DEFAULT_ALPHA
-
-# Consider simplify the code using https://github.com/pallets/click/
-
 
 METRIC_PARAMETERS = {
     "boolean": {"probability": "baseline probability (between 0 and 1)"},
@@ -80,9 +78,36 @@ def get_metric_parameters(parameter_definitions: Dict[str, str]) -> Dict[str, fl
     return parameters
 
 
-def get_metric_metadata() -> Tuple[str, Dict[str, float]]:
-    metric_type = get_metric_type().lower()
-    metric_metadata = get_metric_parameters(METRIC_PARAMETERS[metric_type])
-    metric_metadata["mde"] = get_mde(metric_type)
+def get_variants() -> int:
+    number_of_variants = input("Enter the number of cohorts for this test \n" "Control + number of treatments: ")
+    if number_of_variants.isdigit():
+        return int(number_of_variants)
+    else:
+        raise ValueError("Error: Please enter an integer for the number of variants.")
 
-    return metric_type, metric_metadata
+
+def register_another_metric() -> bool:
+    register = input("Are you going to register another metric? (y/n)").strip().lower()
+    if register == "y":
+        return True
+    elif register in ["n", ""]:
+        return False
+    else:
+        raise ValueError(f"Error: Please enter 'y' or 'n'.")
+
+
+def get_metric_metadata() -> Tuple[List[str], List[Dict[str, float]]]:
+    register = True
+    metric_type_list = []
+    metric_metadata_list = []
+    while register:
+        metric_type = get_metric_type()
+        metric_metadata = get_metric_parameters(METRIC_PARAMETERS[metric_type])
+        metric_metadata["mde"] = get_mde(metric_type)
+
+        metric_type_list += [metric_type]
+        metric_metadata_list.append(metric_metadata)
+
+        register = register_another_metric()
+
+    return metric_type_list, metric_metadata_list

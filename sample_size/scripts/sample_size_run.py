@@ -15,19 +15,22 @@ def main() -> None:
     from sample_size.sample_size_calculator import SampleSizeCalculator
     from sample_size.scripts.input_utils import get_alpha
     from sample_size.scripts.input_utils import get_metric_metadata
+    from sample_size.scripts.input_utils import get_variants
 
     try:
         # Get alpha for power analysis
         alpha = get_alpha()
-        calculator = SampleSizeCalculator(alpha)
+        variants = get_variants()
+        calculator = SampleSizeCalculator(alpha, variants)
 
-        # register metric
-        metric_type, metric_metadata = get_metric_metadata()
-        calculator.register_metric(metric_type, metric_metadata)
+        metric_type_list, metric_metadata_list = get_metric_metadata()
+        calculator.register_metrics(metric_type_list, metric_metadata_list)
 
         # Get and print sample size based on variable and power analysis parameters
         sample_size = calculator.get_sample_size()
+
         print("\nSample size needed in each group: {:.3f}".format(sample_size))
+
     except Exception as e:
         print(f"Error! The calculator isn't able to calculate sample size due to \n{e}")
 
