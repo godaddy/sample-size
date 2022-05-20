@@ -3,14 +3,13 @@ from io import StringIO
 from unittest.mock import patch
 
 from sample_size.sample_size_calculator import DEFAULT_ALPHA
-from sample_size.sample_size_calculator import DEFAULT_VARIANTS
 from sample_size.scripts import input_utils
 
 
 class UtilsTestCase(unittest.TestCase):
     def setUp(self):
+        self.DEFAULT_VARIANTS = 2
         self.TEST_STR = "TEST"
-        self.TEST_SAMPLE_SIZE = 2000
 
     def test_is_float(self):
         happy_test_str = "0.1"
@@ -219,7 +218,7 @@ class UtilsTestCase(unittest.TestCase):
                 "Using default variants(2)...",
             )
 
-        self.assertEqual(variants, DEFAULT_VARIANTS)
+        self.assertEqual(variants, self.DEFAULT_VARIANTS)
         mock_input.assert_called_once()
 
     @patch("sample_size.scripts.input_utils.input")

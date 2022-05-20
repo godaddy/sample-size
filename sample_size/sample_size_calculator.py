@@ -10,7 +10,6 @@ from sample_size.metrics import RatioMetric
 
 DEFAULT_ALPHA = 0.05
 DEFAULT_POWER = 0.8
-DEFAULT_VARIANTS = 2
 
 
 class SampleSizeCalculator:
@@ -23,10 +22,9 @@ class SampleSizeCalculator:
 
     """
 
-    def __init__(self, alpha: float = DEFAULT_ALPHA, power: float = DEFAULT_POWER, variants: int = DEFAULT_VARIANTS):
+    def __init__(self, alpha: float = DEFAULT_ALPHA, power: float = DEFAULT_POWER):
         self.alpha = alpha
         self.power = power
-        self.variants = variants
         # Consider having a self.metrics to hold all metric types
         self.boolean_metrics: List[BooleanMetric] = []
         self.numeric_metrics: List[NumericMetric] = []
@@ -91,6 +89,6 @@ class SampleSizeCalculator:
             "numeric": "register_numeric_metric",
             "ratio": "register_ratio_metric",
         }
-        for i in range(self.variants - 1):
+        for i in range(len(metric_type)):
             register_func = getattr(self, VAR_REGISTER_FUNC_MAP[metric_type[i]])
             register_func(**(metric_metadata[i]))
