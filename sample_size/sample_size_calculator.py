@@ -10,6 +10,7 @@ from sample_size.metrics import RatioMetric
 
 DEFAULT_ALPHA = 0.05
 DEFAULT_POWER = 0.8
+DEFAULT_VARIANTS = 2
 
 
 class SampleSizeCalculator:
@@ -22,13 +23,15 @@ class SampleSizeCalculator:
 
     """
 
-    def __init__(self, alpha: float = DEFAULT_ALPHA, power: float = DEFAULT_POWER):
+    def __init__(self, alpha: float = DEFAULT_ALPHA, power: float = DEFAULT_POWER, variants: int = DEFAULT_VARIANTS):
         self.alpha = alpha
         self.power = power
+        self.variants = variants
         # Consider having a self.metrics to hold all metric types
         self.boolean_metrics: List[BooleanMetric] = []
         self.numeric_metrics: List[NumericMetric] = []
         self.ratio_metrics: List[RatioMetric] = []
+        self.metrics: List[BaseMetric] = []
 
     def register_bool_metric(self, probability: float, mde: float) -> None:
         metric = BooleanMetric(probability, mde)
@@ -82,12 +85,12 @@ class SampleSizeCalculator:
 
         return sample_size
 
-    def register_metric(self, metric_type: str, metric_metadata: Dict[str, float]) -> None:
+    def register_metric(self, metric_type: List[str], metric_metadata: List[Dict[str, float]]) -> None:
         VAR_REGISTER_FUNC_MAP = {
             "boolean": "register_bool_metric",
             "numeric": "register_numeric_metric",
             "ratio": "register_ratio_metric",
         }
-
-        register_func = getattr(self, VAR_REGISTER_FUNC_MAP[metric_type])
-        register_func(**metric_metadata)
+        for i in range(self.variants - 1):
+            register_func = getattr(self, VAR_REGISTER_FUNC_MAP[metric_type[i]])
+            register_func(**(metric_metadata[i]))

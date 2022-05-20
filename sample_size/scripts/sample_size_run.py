@@ -24,7 +24,7 @@ def main() -> None:
         calculator = SampleSizeCalculator(alpha, variants)
 
         metric_type_list, metric_metadata_list = get_metric_metadata()
-        calculator.register_metrics(metric_type_list, metric_metadata_list)
+        calculator.register_metric(metric_type_list, metric_metadata_list)
 
         # Get and print sample size based on variable and power analysis parameters
         sample_size = calculator.get_sample_size()

@@ -79,9 +79,16 @@ def get_metric_parameters(parameter_definitions: Dict[str, str]) -> Dict[str, fl
 
 
 def get_variants() -> int:
-    number_of_variants = input("Enter the number of cohorts for this test \n" "Control + number of treatments: ")
+    number_of_variants = (
+        input("Enter the number of cohorts for this test \n" "Control + number of treatments: ").strip().lower()
+    )
     if number_of_variants.isdigit():
+        if int(number_of_variants) < 2:
+            raise ValueError("Error: An experiment must contain at least 2 variants.")
         return int(number_of_variants)
+    elif number_of_variants == "":
+        print("Using default variants(2)...")
+        return 2
     else:
         raise ValueError("Error: Please enter an integer for the number of variants.")
 
@@ -93,7 +100,7 @@ def register_another_metric() -> bool:
     elif register in ["n", ""]:
         return False
     else:
-        raise ValueError(f"Error: Please enter 'y' or 'n'.")
+        raise ValueError("Error: Please enter 'y' or 'n'.")
 
 
 def get_metric_metadata() -> Tuple[List[str], List[Dict[str, float]]]:

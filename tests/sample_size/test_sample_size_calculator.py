@@ -219,10 +219,10 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
 
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator.register_bool_metric")
     def test_register_metric_boolean(self, mock_register_bool_metric):
-        test_metric_type = "boolean"
+        test_metric_type = ["boolean"]
         test_probability = 0.05
         test_mde = 0.02
-        test_metric_metadata = {"probability": test_probability, "mde": test_mde}
+        test_metric_metadata = [{"probability": test_probability, "mde": test_mde}]
 
         calculator = SampleSizeCalculator()
         calculator.register_metric(test_metric_type, test_metric_metadata)
@@ -231,10 +231,10 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
 
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator.register_numeric_metric")
     def test_register_metric_numeric(self, mock_register_numeric_metric):
-        test_metric_type = "numeric"
+        test_metric_type = ["numeric"]
         test_variance = 5000.0
         test_mde = 5.0
-        test_metric_metadata = {"variance": test_variance, "mde": test_mde}
+        test_metric_metadata = [{"variance": test_variance, "mde": test_mde}]
 
         calculator = SampleSizeCalculator()
         calculator.register_metric(test_metric_type, test_metric_metadata)
@@ -243,21 +243,23 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
 
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator.register_ratio_metric")
     def test_register_metric_ratio(self, mock_register_ratio_metric):
-        test_metric_type = "ratio"
+        test_metric_type = ["ratio"]
         test_numerator_mean = 2000.0
         test_numerator_variance = 100000.0
         test_denominator_mean = 200.0
         test_denominator_variance = 2000.0
         test_covariance = 5000.0
         test_mde = 5.0
-        test_metric_metadata = {
-            "numerator_mean": test_numerator_mean,
-            "numerator_variance": test_numerator_variance,
-            "denominator_mean": test_denominator_mean,
-            "denominator_variance": test_denominator_variance,
-            "covariance": test_covariance,
-            "mde": test_mde,
-        }
+        test_metric_metadata = [
+            {
+                "numerator_mean": test_numerator_mean,
+                "numerator_variance": test_numerator_variance,
+                "denominator_mean": test_denominator_mean,
+                "denominator_variance": test_denominator_variance,
+                "covariance": test_covariance,
+                "mde": test_mde,
+            }
+        ]
 
         calculator = SampleSizeCalculator()
         calculator.register_metric(test_metric_type, test_metric_metadata)
