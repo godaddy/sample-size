@@ -83,7 +83,7 @@ class BooleanMetric(BaseMetric):
             return [p_null for p_null in stats.uniform.rvs(0, 1, size=variants - 1)]
 
         else:
-            effect_size = self.mde / float(np.sqrt(2 * self.variance / sample_size))
+            effect_size = self.mde / np.sqrt(2 * self.variance / sample_size)
             z_alt = stats.norm.rvs(loc=effect_size, size=variants - 1)
             return [p_alt for p_alt in 2 * stats.norm.sf(np.abs(z_alt))]
 
@@ -162,6 +162,6 @@ class RatioMetric(BaseMetric):
             return [p_null for p_null in stats.uniform.rvs(0, 1, size=variants - 1)]
 
         else:
-            effect_size = self.mde / float(np.sqrt(2 * self.variance / sample_size))
+            effect_size = self.mde / np.sqrt(2 * self.variance / sample_size)
             z_alt = stats.norm.rvs(loc=effect_size, size=variants - 1)
             return [p_alt for p_alt in 2 * stats.norm.sf(np.abs(z_alt))]

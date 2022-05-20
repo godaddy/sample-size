@@ -212,7 +212,7 @@ class RatioMetricTestCase(unittest.TestCase):
             mock_uniform.assert_called_once_with(0, 1, size=variants - 1)
             mock_norm.assert_not_called()
         else:
-            effect_sample_size = self.DEFAULT_MDE / float(np.sqrt(2 * self.DEFAULT_VARIANCE / sample_size))
+            effect_sample_size = self.DEFAULT_MDE / np.sqrt(2 * self.DEFAULT_VARIANCE / sample_size)
             mock_uniform.assert_not_called()
             mock_norm.rvs.assert_called_once_with(loc=effect_sample_size, size=variants - 1)
             mock_norm.sf.assert_called_once_with(np.abs(mock_norm.rvs.return_value))
