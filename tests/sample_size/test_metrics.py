@@ -98,7 +98,7 @@ class BooleanMetricTestCase(unittest.TestCase):
             mock_norm.assert_not_called()
             assert_array_equal(p, pval)
         else:
-            effect_sample_size = self.DEFAULT_MDE / float(np.sqrt(2 * self.DEFAULT_MOCK_VARIANCE / sample_size))
+            effect_sample_size = self.DEFAULT_MDE / np.sqrt(2 * self.DEFAULT_MOCK_VARIANCE / sample_size)
             mock_uniform.assert_not_called()
             mock_norm.assert_called_once_with(loc=effect_sample_size, size=variants - 1)
             self.assertEqual(len(p), len(pval))
