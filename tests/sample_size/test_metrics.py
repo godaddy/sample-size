@@ -83,10 +83,11 @@ class BooleanMetricTestCase(unittest.TestCase):
     @parameterized.expand(product([True, False], [2, 5], [200]))
     @patch("sample_size.metrics.BooleanMetric.variance")
     @patch("scipy.stats.uniform.rvs")
-    @patch("scipy.stats.norm.rvs")
+    @patch("scipy.stats.norm")
     def test_boolean_generate_p_value(self, true_null, variants, sample_size, mock_norm, mock_uniform, mock_variance):
-        p_value_generator = mock_uniform if true_null else mock_norm
-        pval = np.zeros(variants - 1)
+        p_value_generator = mock_uniform if true_null else mock_norm.sf
+        pval = MagicMock()
+        mock_norm.rvs.return_value = -ord("🌮")
         p_value_generator.return_value = pval
         mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_MOCK_VARIANCE)
 
@@ -96,12 +97,12 @@ class BooleanMetricTestCase(unittest.TestCase):
         if true_null:
             mock_uniform.assert_called_once_with(0, 1, size=variants - 1)
             mock_norm.assert_not_called()
-            assert_array_equal(p, pval)
         else:
             effect_sample_size = self.DEFAULT_MDE / float(np.sqrt(2 * self.DEFAULT_MOCK_VARIANCE / sample_size))
             mock_uniform.assert_not_called()
-            mock_norm.assert_called_once_with(loc=effect_sample_size, size=variants - 1)
-            self.assertEqual(len(p), len(pval))
+            mock_norm.rvs.assert_called_once_with(loc=effect_sample_size, size=variants - 1)
+            mock_norm.sf.assert_called_once_with(np.abs(mock_norm.rvs.return_value))
+        assert_array_equal(p, pval)
 
 
 class NumericMetricTestCase(unittest.TestCase):
@@ -120,9 +121,11 @@ class NumericMetricTestCase(unittest.TestCase):
     @parameterized.expand(product([True, False], [2, 5], [200]))
     @patch("scipy.stats.uniform.rvs")
     @patch("scipy.stats.nct.rvs")
-    def test_numeric_generate_p_value(self, true_null, variants, sample_size, mock_nct, mock_uniform):
-        p_value_generator = mock_uniform if true_null else mock_nct
-        pval = np.zeros(variants - 1)
+    @patch("scipy.stats.t.sf")
+    def test_numeric_generate_p_value(self, true_null, variants, sample_size, mock_t, mock_nct, mock_uniform):
+        p_value_generator = mock_uniform if true_null else mock_t
+        pval = MagicMock()
+        mock_nct.return_value = -ord("🌮")
         p_value_generator.return_value = pval
 
         numeric = NumericMetric(self.DEFAULT_VARIANCE, self.DEFAULT_MDE)
@@ -131,12 +134,13 @@ class NumericMetricTestCase(unittest.TestCase):
         if true_null:
             mock_uniform.assert_called_once_with(0, 1, size=variants - 1)
             mock_nct.assert_not_called()
-            assert_array_equal(p, pval)
+            mock_t.assert_not_called()
         else:
             nc = np.sqrt(sample_size / 2) * self.DEFAULT_MDE / self.DEFAULT_VARIANCE
             mock_uniform.assert_not_called()
             mock_nct.assert_called_once_with(nc=nc, df=2 * (sample_size - 1), size=variants - 1)
-            self.assertEqual(len(p), len(pval))
+            mock_t.assert_called_once_with(np.abs(mock_nct.return_value), 2 * (sample_size - 1))
+        assert_array_equal(p, pval)
 
 
 class RatioMetricTestCase(unittest.TestCase):
@@ -185,10 +189,11 @@ class RatioMetricTestCase(unittest.TestCase):
     @parameterized.expand(product([True, False], [2, 5], [200]))
     @patch("sample_size.metrics.RatioMetric.variance")
     @patch("scipy.stats.uniform.rvs")
-    @patch("scipy.stats.norm.rvs")
+    @patch("scipy.stats.norm")
     def test_ratio_generate_p_value(self, true_null, variants, sample_size, mock_norm, mock_uniform, mock_variance):
-        p_value_generator = mock_uniform if true_null else mock_norm
-        pval = np.zeros(variants - 1)
+        p_value_generator = mock_uniform if true_null else mock_norm.sf
+        pval = MagicMock()
+        mock_norm.rvs.return_value = -ord("🌮")
         p_value_generator.return_value = pval
         mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_VARIANCE)
 
@@ -206,9 +211,9 @@ class RatioMetricTestCase(unittest.TestCase):
         if true_null:
             mock_uniform.assert_called_once_with(0, 1, size=variants - 1)
             mock_norm.assert_not_called()
-            assert_array_equal(p, pval)
         else:
             effect_sample_size = self.DEFAULT_MDE / float(np.sqrt(2 * self.DEFAULT_VARIANCE / sample_size))
             mock_uniform.assert_not_called()
-            mock_norm.assert_called_once_with(loc=effect_sample_size, size=variants - 1)
-            self.assertEqual(len(p), len(pval))
+            mock_norm.rvs.assert_called_once_with(loc=effect_sample_size, size=variants - 1)
+            mock_norm.sf.assert_called_once_with(np.abs(mock_norm.rvs.return_value))
+        assert_array_equal(p, pval)
