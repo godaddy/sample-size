@@ -45,7 +45,7 @@ class BaseMetric:
             variants: number of test variants, including control
 
         Returns:
-            p-value(s): the p-values generated. This is a float or a list with length variants-1
+            p-value(s): A list of the p-values generated with length variants-1
         """
         raise NotImplementedError
 
