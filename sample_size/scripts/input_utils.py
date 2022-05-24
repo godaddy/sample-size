@@ -80,7 +80,7 @@ def get_metric_parameters(parameter_definitions: Dict[str, str]) -> Dict[str, fl
 
 def get_variants() -> int:
     number_of_variants = (
-        input("Enter the number of cohorts for this test \n" "Control + number of treatments: ").strip().lower()
+        input("Enter the number of cohorts for this test. \n" "definition: Control + number of treatments: ").strip().lower()
     )
     if number_of_variants.isdigit():
         if int(number_of_variants) < 2:
