@@ -204,7 +204,9 @@ class UtilsTestCase(unittest.TestCase):
 
         self.assertEqual(variants, test_input_int)
         mock_input.assert_called_once_with(
-            "Enter the number of cohorts for this test \n" "Control + number of treatments: "
+            "Enter the number of cohorts for this test or Press Enter to use default variant = 2 if you have only 1 "
+            "control and 1 treatment. \n"
+            "definition: Control + number of treatments: "
         )
 
     @patch("sample_size.scripts.input_utils.input")
@@ -295,9 +297,7 @@ class UtilsTestCase(unittest.TestCase):
     @patch("sample_size.scripts.input_utils.get_mde")
     @patch("sample_size.scripts.input_utils.get_metric_parameters")
     @patch("sample_size.scripts.input_utils.get_metric_type")
-    def test_get_metric_metadata_single(
-        self, mock_get_metric_type, mock_get_metric_parameters, mock_get_mde, mock_register
-    ):
+    def test_get_metric_single(self, mock_get_metric_type, mock_get_metric_parameters, mock_get_mde, mock_register):
         test_metric_type_lower = "boolean"
         test_metric_metadata = {"test": 0.01}
         test_mde = 0.05
@@ -307,10 +307,11 @@ class UtilsTestCase(unittest.TestCase):
         mock_register.return_value = False
         test_metric_metadata = {"test": 0.01, "mde": test_mde}
 
-        metric_type, metric_metadata = input_utils.get_metric_metadata()
-
-        self.assertEqual(metric_type, [test_metric_type_lower])
-        self.assertEqual(metric_metadata, [test_metric_metadata])
+        metric = input_utils.get_metrics()
+        self.assertEqual(
+            metric,
+            [{"metric_type": test_metric_type_lower, "metric_metadata": test_metric_metadata}],
+        )
         mock_get_metric_type.assert_called_once()
         mock_get_metric_parameters.assert_called_once_with(input_utils.METRIC_PARAMETERS[test_metric_type_lower])
         mock_get_mde.assert_called_once_with(test_metric_type_lower)

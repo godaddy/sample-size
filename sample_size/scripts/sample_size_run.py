@@ -14,7 +14,7 @@ def main() -> None:
     """
     from sample_size.sample_size_calculator import SampleSizeCalculator
     from sample_size.scripts.input_utils import get_alpha
-    from sample_size.scripts.input_utils import get_metric_metadata
+    from sample_size.scripts.input_utils import get_metrics
     from sample_size.scripts.input_utils import get_variants
 
     try:
@@ -23,8 +23,8 @@ def main() -> None:
         variants = get_variants()
         calculator = SampleSizeCalculator(alpha, variants)
 
-        metric_type_list, metric_metadata_list = get_metric_metadata()
-        calculator.register_metric(metric_type_list, metric_metadata_list)
+        metrics = get_metrics()
+        calculator.register_metrics(metrics)
 
         # Get and print sample size based on variable and power analysis parameters
         sample_size = calculator.get_sample_size()

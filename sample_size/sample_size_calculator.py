@@ -1,3 +1,4 @@
+from typing import Any
 from typing import Dict
 from typing import List
 
@@ -25,7 +26,6 @@ class SampleSizeCalculator:
     def __init__(self, alpha: float = DEFAULT_ALPHA, power: float = DEFAULT_POWER):
         self.alpha = alpha
         self.power = power
-        # Consider having a self.metrics to hold all metric types
         self.boolean_metrics: List[BooleanMetric] = []
         self.numeric_metrics: List[NumericMetric] = []
         self.ratio_metrics: List[RatioMetric] = []
@@ -83,12 +83,12 @@ class SampleSizeCalculator:
 
         return sample_size
 
-    def register_metric(self, metric_type: List[str], metric_metadata: List[Dict[str, float]]) -> None:
+    def register_metrics(self, metrics: List[Dict[str, Any]]) -> None:
         VAR_REGISTER_FUNC_MAP = {
             "boolean": "register_bool_metric",
             "numeric": "register_numeric_metric",
             "ratio": "register_ratio_metric",
         }
-        for i in range(len(metric_type)):
-            register_func = getattr(self, VAR_REGISTER_FUNC_MAP[metric_type[i]])
-            register_func(**(metric_metadata[i]))
+        for metric in metrics:
+            register_func = getattr(self, VAR_REGISTER_FUNC_MAP[metric["metric_type"]])
+            register_func(**(metric["metric_metadata"]))

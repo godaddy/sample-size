@@ -1,6 +1,6 @@
+from typing import Any
 from typing import Dict
 from typing import List
-from typing import Tuple
 
 from sample_size.sample_size_calculator import DEFAULT_ALPHA
 
@@ -80,7 +80,13 @@ def get_metric_parameters(parameter_definitions: Dict[str, str]) -> Dict[str, fl
 
 def get_variants() -> int:
     number_of_variants = (
-        input("Enter the number of cohorts for this test. \n" "definition: Control + number of treatments: ").strip().lower()
+        input(
+            "Enter the number of cohorts for this test or Press Enter to use default variant = 2 if you have only 1 "
+            "control and 1 treatment. \n"
+            "definition: Control + number of treatments: "
+        )
+        .strip()
+        .lower()
     )
     if number_of_variants.isdigit():
         if int(number_of_variants) < 2:
@@ -103,18 +109,15 @@ def register_another_metric() -> bool:
         raise ValueError("Error: Please enter 'y' or 'n'.")
 
 
-def get_metric_metadata() -> Tuple[List[str], List[Dict[str, float]]]:
+def get_metrics() -> List[Dict[str, Any]]:
     register = True
-    metric_type_list = []
-    metric_metadata_list = []
+    metric_list = []
     while register:
         metric_type = get_metric_type()
         metric_metadata = get_metric_parameters(METRIC_PARAMETERS[metric_type])
         metric_metadata["mde"] = get_mde(metric_type)
-
-        metric_type_list += [metric_type]
-        metric_metadata_list.append(metric_metadata)
+        metric_list.append({"metric_type": metric_type, "metric_metadata": metric_metadata})
 
         register = register_another_metric()
 
-    return metric_type_list, metric_metadata_list
+    return metric_list
