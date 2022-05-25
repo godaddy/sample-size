@@ -8,15 +8,18 @@ from sample_size.metrics import NumericMetric
 from sample_size.metrics import RatioMetric
 from sample_size.sample_size_calculator import DEFAULT_ALPHA
 from sample_size.sample_size_calculator import DEFAULT_POWER
+from sample_size.sample_size_calculator import DEFAULT_VARIANTS
 from sample_size.sample_size_calculator import SampleSizeCalculator
 
 
 class SampleSizeCalculatorTestCase(unittest.TestCase):
     def test_sample_size_calculator_constructor_sets_params(self):
         test_alpha = 0.1
+        test_variants = 2
         test_power = 0.9
         calculator = SampleSizeCalculator(
             test_alpha,
+            test_variants,
             test_power,
         )
 
@@ -30,6 +33,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         calculator = SampleSizeCalculator()
 
         self.assertEqual(calculator.alpha, DEFAULT_ALPHA)
+        self.assertEqual(calculator.variants, DEFAULT_VARIANTS)
         self.assertEqual(calculator.power, DEFAULT_POWER)
         self.assertEqual(calculator.boolean_metrics, [])
         self.assertEqual(calculator.numeric_metrics, [])

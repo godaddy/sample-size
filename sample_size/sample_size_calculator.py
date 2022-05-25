@@ -11,6 +11,7 @@ from sample_size.metrics import RatioMetric
 
 DEFAULT_ALPHA = 0.05
 DEFAULT_POWER = 0.8
+DEFAULT_VARIANTS = 2
 
 
 class SampleSizeCalculator:
@@ -23,13 +24,14 @@ class SampleSizeCalculator:
 
     """
 
-    def __init__(self, alpha: float = DEFAULT_ALPHA, power: float = DEFAULT_POWER):
+    def __init__(self, alpha: float = DEFAULT_ALPHA, variants: int = DEFAULT_VARIANTS, power: float = DEFAULT_POWER):
         self.alpha = alpha
         self.power = power
         self.boolean_metrics: List[BooleanMetric] = []
         self.numeric_metrics: List[NumericMetric] = []
         self.ratio_metrics: List[RatioMetric] = []
         self.metrics: List[BaseMetric] = []
+        self.variants: int = variants
 
     def register_bool_metric(self, probability: float, mde: float) -> None:
         metric = BooleanMetric(probability, mde)

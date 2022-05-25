@@ -211,7 +211,7 @@ class UtilsTestCase(unittest.TestCase):
 
     @patch("sample_size.scripts.input_utils.input")
     def test_get_variants_default(self, mock_input):
-        mock_input.return_value = ""
+        mock_input.return_value = " "
 
         with patch("sys.stdout", new=StringIO()) as fakeOutput:
             variants = input_utils.get_variants()
@@ -232,7 +232,7 @@ class UtilsTestCase(unittest.TestCase):
 
         self.assertEqual(
             context.exception.args[0],
-            "Error: Please enter an integer for the number of variants.",
+            "Error: Please enter a positive integer for the number of variants.",
         )
 
         mock_input.assert_called_once()
@@ -252,12 +252,26 @@ class UtilsTestCase(unittest.TestCase):
         mock_input.assert_called_once()
 
     @patch("sample_size.scripts.input_utils.input")
+    def test_get_variants_negative(self, mock_input):
+        test_input_str = "-3"
+        mock_input.return_value = test_input_str
+        with self.assertRaises(Exception) as context:
+            input_utils.get_variants()
+
+        self.assertEqual(
+            context.exception.args[0],
+            "Error: Please enter a positive integer for the number of variants.",
+        )
+
+        mock_input.assert_called_once()
+
+    @patch("sample_size.scripts.input_utils.input")
     def test_register_another_metric_yes(self, mock_input):
         test_input_str = "y"
         mock_input.return_value = test_input_str
         register = input_utils.register_another_metric()
 
-        assert register
+        self.assertTrue(register)
         mock_input.assert_called_once_with("Are you going to register another metric? (y/n)")
 
     @patch("sample_size.scripts.input_utils.input")
@@ -266,7 +280,7 @@ class UtilsTestCase(unittest.TestCase):
         mock_input.return_value = test_input_str
         register = input_utils.register_another_metric()
 
-        assert not register
+        self.assertFalse(register)
         mock_input.assert_called_once()
 
     @patch("sample_size.scripts.input_utils.input")
@@ -275,7 +289,7 @@ class UtilsTestCase(unittest.TestCase):
         mock_input.return_value = test_input_str
         register = input_utils.register_another_metric()
 
-        assert not register
+        self.assertFalse(register)
         mock_input.assert_called_once()
 
     @patch("sample_size.scripts.input_utils.input")

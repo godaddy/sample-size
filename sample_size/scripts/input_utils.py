@@ -96,7 +96,7 @@ def get_variants() -> int:
         print("Using default variants(2)...")
         return 2
     else:
-        raise ValueError("Error: Please enter an integer for the number of variants.")
+        raise ValueError("Error: Please enter a positive integer for the number of variants.")
 
 
 def register_another_metric() -> bool:
@@ -111,13 +111,13 @@ def register_another_metric() -> bool:
 
 def get_metrics() -> List[Dict[str, Any]]:
     register = True
-    metric_list = []
+    metrics = []
     while register:
         metric_type = get_metric_type()
         metric_metadata = get_metric_parameters(METRIC_PARAMETERS[metric_type])
         metric_metadata["mde"] = get_mde(metric_type)
-        metric_list.append({"metric_type": metric_type, "metric_metadata": metric_metadata})
+        metrics.append({"metric_type": metric_type, "metric_metadata": metric_metadata})
 
         register = register_another_metric()
 
-    return metric_list
+    return metrics
