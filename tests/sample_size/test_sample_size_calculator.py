@@ -25,9 +25,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
 
         self.assertEqual(calculator.alpha, test_alpha)
         self.assertEqual(calculator.power, test_power)
-        self.assertEqual(calculator.boolean_metrics, [])
-        self.assertEqual(calculator.numeric_metrics, [])
-        self.assertEqual(calculator.ratio_metrics, [])
+        self.assertEqual(calculator.metrics, [])
 
     def test_sample_size_calculator_constructor_sets_params_with_default_params(self):
         calculator = SampleSizeCalculator()
@@ -35,76 +33,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         self.assertEqual(calculator.alpha, DEFAULT_ALPHA)
         self.assertEqual(calculator.variants, DEFAULT_VARIANTS)
         self.assertEqual(calculator.power, DEFAULT_POWER)
-        self.assertEqual(calculator.boolean_metrics, [])
-        self.assertEqual(calculator.numeric_metrics, [])
-        self.assertEqual(calculator.ratio_metrics, [])
-
-    def test_register_bool_metric(self):
-        test_probability = 0.05
-        test_mde = 0.02
-
-        calculator = SampleSizeCalculator()
-        calculator.register_bool_metric(test_probability, test_mde)
-
-        self.assertEqual(len(calculator.boolean_metrics), 1)
-        self.assertEqual(calculator.boolean_metrics[0].variance, 0.0475)
-        self.assertEqual(calculator.boolean_metrics[0].mde, test_mde)
-        self.assertEqual(calculator.numeric_metrics, [])
-        self.assertEqual(calculator.ratio_metrics, [])
-
-        calculator.register_bool_metric(test_probability, test_mde)
-        self.assertEqual(len(calculator.boolean_metrics), 2)
-
-    def test_register_numeric_metric(self):
-        test_variance = 5000
-        test_mde = 10
-
-        calculator = SampleSizeCalculator()
-        calculator.register_numeric_metric(test_variance, test_mde)
-
-        self.assertEqual(len(calculator.numeric_metrics), 1)
-        self.assertEqual(calculator.numeric_metrics[0].variance, test_variance)
-        self.assertEqual(calculator.numeric_metrics[0].mde, test_mde)
-        self.assertEqual(calculator.boolean_metrics, [])
-        self.assertEqual(calculator.ratio_metrics, [])
-
-        calculator.register_numeric_metric(test_variance, test_mde)
-        self.assertEqual(len(calculator.numeric_metrics), 2)
-
-    def test_register_ratio_metric(self):
-        test_numerator_mean = 2000
-        test_numerator_variance = 100000
-        test_denominator_mean = 200
-        test_denominator_variance = 2000
-        test_covariance = 5000
-        test_mde = 10
-        test_variance = 5
-
-        calculator = SampleSizeCalculator()
-        calculator.register_ratio_metric(
-            test_numerator_mean,
-            test_numerator_variance,
-            test_denominator_mean,
-            test_denominator_variance,
-            test_covariance,
-            test_mde,
-        )
-
-        self.assertEqual(len(calculator.ratio_metrics), 1)
-        self.assertEqual(calculator.ratio_metrics[0].variance, test_variance)
-        self.assertEqual(calculator.ratio_metrics[0].mde, test_mde)
-        self.assertEqual(calculator.boolean_metrics, [])
-        self.assertEqual(calculator.numeric_metrics, [])
-
-        calculator.register_ratio_metric(
-            test_numerator_mean,
-            test_numerator_variance,
-            test_denominator_mean,
-            test_denominator_variance,
-            test_covariance,
-            test_mde,
-        )
-        self.assertEqual(len(calculator.ratio_metrics), 2)
+        self.assertEqual(calculator.metrics, [])
 
     @patch("statsmodels.stats.power.NormalIndPower.solve_power")  # consider parameterize the solver per metric type
     def test_get_single_sample_size_normal(self, mock_solve_power):
@@ -154,13 +83,15 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
 
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
     def test_get_overall_sample_size_bool(self, mock_get_single_sample_size):
+        test_metric_type = "boolean"
         test_sample_size = 2000
         mock_get_single_sample_size.return_value = test_sample_size
 
         test_mde = 0.02
         test_probability = 0.05
+        test_metric_metadata = {"probability": test_probability, "mde": test_mde}
         calculator = SampleSizeCalculator()
-        calculator.register_bool_metric(test_probability, test_mde)
+        calculator.register_metrics([{"metric_type": test_metric_type, "metric_metadata": test_metric_metadata}])
 
         sample_size = calculator.get_sample_size()
 
@@ -172,13 +103,15 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
 
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
     def test_get_overall_sample_size_numeric(self, mock_get_single_sample_size):
+        test_metric_type = "numeric"
         test_sample_size = 2000
         mock_get_single_sample_size.return_value = test_sample_size
 
         test_mde = 5
         test_variance = 500
+        test_metric_metadata = {"variance": test_variance, "mde": test_mde}
         calculator = SampleSizeCalculator()
-        calculator.register_numeric_metric(test_variance, test_mde)
+        calculator.register_metrics([{"metric_type": test_metric_type, "metric_metadata": test_metric_metadata}])
 
         sample_size = calculator.get_sample_size()
 
@@ -190,6 +123,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
 
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
     def test_get_overall_sample_size_ratio(self, mock_get_single_sample_size):
+        test_metric_type = "ratio"
         test_sample_size = 2000
         mock_get_single_sample_size.return_value = test_sample_size
 
@@ -199,15 +133,18 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         test_denominator_variance = 2000
         test_covariance = 5000
         test_mde = 10
+
+        test_metric_metadata = {
+            "numerator_mean": test_numerator_mean,
+            "numerator_variance": test_numerator_variance,
+            "denominator_mean": test_denominator_mean,
+            "denominator_variance": test_denominator_variance,
+            "covariance": test_covariance,
+            "mde": test_mde,
+        }
+
         calculator = SampleSizeCalculator()
-        calculator.register_ratio_metric(
-            test_numerator_mean,
-            test_numerator_variance,
-            test_denominator_mean,
-            test_denominator_variance,
-            test_covariance,
-            test_mde,
-        )
+        calculator.register_metrics([{"metric_type": test_metric_type, "metric_metadata": test_metric_metadata}])
 
         sample_size = calculator.get_sample_size()
 
@@ -221,8 +158,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         assert_equal(mock_get_single_sample_size.call_args[0][0].covariance, test_covariance)
         assert_equal(mock_get_single_sample_size.call_args[0][0].mde, test_mde)
 
-    @patch("sample_size.sample_size_calculator.SampleSizeCalculator.register_bool_metric")
-    def test_register_metric_boolean(self, mock_register_bool_metric):
+    def test_register_metric_boolean(self):
         test_metric_type = "boolean"
         test_probability = 0.05
         test_mde = 0.02
@@ -230,11 +166,15 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
 
         calculator = SampleSizeCalculator()
         calculator.register_metrics([{"metric_type": test_metric_type, "metric_metadata": test_metric_metadata}])
+        self.assertIsInstance(calculator.metrics[0], BooleanMetric)
+        self.assertEqual(len(calculator.metrics), 1)
+        self.assertEqual(calculator.metrics[0].variance, 0.0475)
+        self.assertEqual(calculator.metrics[0].mde, test_mde)
 
-        mock_register_bool_metric.assert_called_once_with(probability=test_probability, mde=test_mde)
+        calculator.register_metrics([{"metric_type": test_metric_type, "metric_metadata": test_metric_metadata}])
+        self.assertEqual(len(calculator.metrics), 2)
 
-    @patch("sample_size.sample_size_calculator.SampleSizeCalculator.register_numeric_metric")
-    def test_register_metric_numeric(self, mock_register_numeric_metric):
+    def test_register_metric_numeric(self):
         test_metric_type = "numeric"
         test_variance = 5000.0
         test_mde = 5.0
@@ -242,11 +182,15 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
 
         calculator = SampleSizeCalculator()
         calculator.register_metrics([{"metric_type": test_metric_type, "metric_metadata": test_metric_metadata}])
+        self.assertIsInstance(calculator.metrics[0], NumericMetric)
+        self.assertEqual(len(calculator.metrics), 1)
+        self.assertEqual(calculator.metrics[0].variance, test_variance)
+        self.assertEqual(calculator.metrics[0].mde, test_mde)
 
-        mock_register_numeric_metric.assert_called_once_with(variance=test_variance, mde=test_mde)
+        calculator.register_metrics([{"metric_type": test_metric_type, "metric_metadata": test_metric_metadata}])
+        self.assertEqual(len(calculator.metrics), 2)
 
-    @patch("sample_size.sample_size_calculator.SampleSizeCalculator.register_ratio_metric")
-    def test_register_metric_ratio(self, mock_register_ratio_metric):
+    def test_register_metric_ratio(self):
         test_metric_type = "ratio"
         test_numerator_mean = 2000.0
         test_numerator_variance = 100000.0
@@ -254,6 +198,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         test_denominator_variance = 2000.0
         test_covariance = 5000.0
         test_mde = 5.0
+        test_variance = 5
         test_metric_metadata = {
             "numerator_mean": test_numerator_mean,
             "numerator_variance": test_numerator_variance,
@@ -265,12 +210,10 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
 
         calculator = SampleSizeCalculator()
         calculator.register_metrics([{"metric_type": test_metric_type, "metric_metadata": test_metric_metadata}])
+        self.assertIsInstance(calculator.metrics[0], RatioMetric)
+        self.assertEqual(len(calculator.metrics), 1)
+        self.assertEqual(calculator.metrics[0].variance, test_variance)
+        self.assertEqual(calculator.metrics[0].mde, test_mde)
 
-        mock_register_ratio_metric.assert_called_once_with(
-            numerator_mean=test_numerator_mean,
-            numerator_variance=test_numerator_variance,
-            denominator_mean=test_denominator_mean,
-            denominator_variance=test_denominator_variance,
-            covariance=test_covariance,
-            mde=test_mde,
-        )
+        calculator.register_metrics([{"metric_type": test_metric_type, "metric_metadata": test_metric_metadata}])
+        self.assertEqual(len(calculator.metrics), 2)
