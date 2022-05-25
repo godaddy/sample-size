@@ -7,28 +7,23 @@ from sample_size.metrics import BaseMetric
 from sample_size.sample_size_calculator import SampleSizeCalculator
 
 
-class MultipleTesting:
+class MultipleTestingMixin:
     """
-    This class is to calculate sample size required under the case of multiple testing
+    This class calculates sample size required under the case of multiple testing
 
     Attributes:
     metrics: a list of BaseMetric registered by users
     variants: number of variants, including control
     alpha: statistical significance
     power: statistical power
+
     """
 
-    def __init__(self, metrics: List[BaseMetric], variants: int, alpha: float, power: float):
-        self.REPLICATION: int = 100
-        self.metrics = metrics
-        self.m = (variants - 1) * len(metrics)
-        self.alpha = alpha
-        self.power = power
-
     def get_multiple_sample_size(self) -> int:
-        # calculate required sample size based on minimum standardized effect size since it requires maximum sample size
-        lower = max([SampleSizeCalculator().get_single_sample_size(metric) for metric in self.metrics])
-        upper = max([SampleSizeCalculator(alpha=self.alpha/self.m).get_single_sample_size(metric) for metric in self.metrics])
+        if len(self.metrics) < 2:
+            return self.metrics[0].single_sample_size()
+        lower = max([metric.single_sample_size(self.alpha, self.power) for metric in self.metrics])
+        upper = max([metric.single_sample_size(self.alpha / self.m, self.power) for metric in self.metrics])
 
         return self._find_sample_size(lower, upper)
 

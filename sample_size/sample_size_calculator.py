@@ -8,11 +8,13 @@ from sample_size.metrics import BooleanMetric
 from sample_size.metrics import NumericMetric
 from sample_size.metrics import RatioMetric
 
+from .multiple_testing_funcs import MultipleTestingMixin
+
 DEFAULT_ALPHA = 0.05
 DEFAULT_POWER = 0.8
 
 
-class SampleSizeCalculator:
+class SampleSizeCalculator(MultipleTestingMixin):
     """
     This class is to calculate sample size based on metric type
 
@@ -67,20 +69,7 @@ class SampleSizeCalculator:
         return sample_size
 
     def get_sample_size(self) -> float:
-        # Supports the sample size calculation for single metric now.
-        # The current structure is set up to support multiple metrics in the future.
-        sample_size = float("nan")
-        if self.boolean_metrics:
-            for bool_metric in self.boolean_metrics:
-                sample_size = self._get_single_sample_size(bool_metric)
-        if self.numeric_metrics:
-            for numeric_metric in self.numeric_metrics:
-                sample_size = self._get_single_sample_size(numeric_metric)
-        if self.ratio_metrics:
-            for ratio_metric in self.ratio_metrics:
-                sample_size = self._get_single_sample_size(ratio_metric)
-
-        return sample_size
+        return self.get_multiple_sample_size()
 
     def register_metric(self, metric_type: str, metric_metadata: Dict[str, float]) -> None:
         VAR_REGISTER_FUNC_MAP = {

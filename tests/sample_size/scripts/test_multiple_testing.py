@@ -12,4 +12,7 @@ from sample_size.sample_size_calculator import SampleSizeCalculator
 
 
 class MultipleTestingTestCase(unittest.TestCase):
+
     def test_get_multiple_sample_size(self):
+        self.metrics =
+
