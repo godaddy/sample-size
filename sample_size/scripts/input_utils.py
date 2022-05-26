@@ -99,6 +99,7 @@ def get_variants() -> int:
         raise ValueError("Error: Please enter a positive integer for the number of variants.")
 
 
+# TODO: add the case of registering the first metric
 def register_another_metric() -> bool:
     register = input("Are you going to register another metric? (y/n)").strip().lower()
     if register == "y":

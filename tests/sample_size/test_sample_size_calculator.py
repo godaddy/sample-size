@@ -219,3 +219,10 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
 
         calculator.register_metrics([{"metric_type": test_metric_type, "metric_metadata": test_metric_metadata}])
         self.assertEqual(len(calculator.metrics), 2)
+
+    def test_register_metric_invalid_metadata(self):
+        test_metric_type = "numeric"
+
+        calculator = SampleSizeCalculator()
+        with self.assertRaises(Exception):
+            calculator.register_metrics([{"metric_type": test_metric_type}])
