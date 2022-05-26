@@ -1,20 +1,105 @@
+from typing import Any
 from typing import Dict
 from typing import List
 
 import numpy as np
+from jsonschema import validate
 
 from sample_size.metrics import BaseMetric
 from sample_size.metrics import BooleanMetric
 from sample_size.metrics import NumericMetric
 from sample_size.metrics import RatioMetric
 
-from sample_size.multiple_testing import MultipleTestingMixin
-
 DEFAULT_ALPHA = 0.05
 DEFAULT_POWER = 0.8
+DEFAULT_VARIANTS = 2
+METRICS_SCHEMA = {
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "metric_type": {
+                "type": "string",
+                "enum": ["boolean", "numeric", "ratio"],
+            },
+        },
+        "allOf": [
+            {
+                "if": {
+                    "properties": {
+                        "metric_type": {"const": "boolean"},
+                    },
+                },
+                "then": {
+                    "properties": {
+                        "metric_metadata": {
+                            "type": "object",
+                            "properties": {
+                                "mde": {"type": "number"},
+                                "probability": {"type": "number"},
+                            },
+                            "required": ["mde", "probability"],
+                        },
+                    },
+                },
+            },
+            {
+                "if": {
+                    "properties": {
+                        "metric_type": {"const": "numeric"},
+                    },
+                },
+                "then": {
+                    "properties": {
+                        "metric_metadata": {
+                            "type": "object",
+                            "properties": {
+                                "mde": {"type": "number"},
+                                "variance": {"type": "number"},
+                            },
+                            "required": ["mde", "variance"],
+                        },
+                    },
+                },
+            },
+            {
+                "if": {
+                    "properties": {
+                        "metric_type": {"const": "ratio"},
+                    },
+                },
+                "then": {
+                    "properties": {
+                        "metric_metadata": {
+                            "type": "object",
+                            "properties": {
+                                "mde": {"type": "number"},
+                                "numerator_mean": {"type": "number"},
+                                "numerator_variance": {"type": "number"},
+                                "denominator_mean": {"type": "number"},
+                                "denominator_variance": {"type": "number"},
+                                "covariance": {"type": "number"},
+                            },
+                            "required": [
+                                "mde",
+                                "numerator_mean",
+                                "numerator_variance",
+                                "denominator_mean",
+                                "denominator_variance",
+                                "covariance",
+                            ],
+                        },
+                    },
+                },
+            },
+        ],
+        "required": ["metric_type", "metric_metadata"],
+    },
+    "minItems": 1,
+}
 
 
-class SampleSizeCalculator(MultipleTestingMixin):
+class SampleSizeCalculator:
     """
     This class is to calculate sample size based on metric type
 
@@ -24,37 +109,13 @@ class SampleSizeCalculator(MultipleTestingMixin):
 
     """
 
-    def __init__(self, alpha: float = DEFAULT_ALPHA, power: float = DEFAULT_POWER):
+    def __init__(self, alpha: float = DEFAULT_ALPHA, variants: int = DEFAULT_VARIANTS, power: float = DEFAULT_POWER):
         self.alpha = alpha
         self.power = power
-        # Consider having a self.metrics to hold all metric types
-        self.boolean_metrics: List[BooleanMetric] = []
-        self.numeric_metrics: List[NumericMetric] = []
-        self.ratio_metrics: List[RatioMetric] = []
+        self.metrics: List[BaseMetric] = []
+        self.variants: int = variants
 
-    def register_bool_metric(self, probability: float, mde: float) -> None:
-        metric = BooleanMetric(probability, mde)
-        self.boolean_metrics.append(metric)
-
-    def register_numeric_metric(self, variance: float, mde: float) -> None:
-        metric = NumericMetric(variance, mde)
-        self.numeric_metrics.append(metric)
-
-    def register_ratio_metric(
-        self,
-        numerator_mean: float,
-        numerator_variance: float,
-        denominator_mean: float,
-        denominator_variance: float,
-        covariance: float,
-        mde: float,
-    ) -> None:
-        metric = RatioMetric(
-            numerator_mean, numerator_variance, denominator_mean, denominator_variance, covariance, mde
-        )
-        self.ratio_metrics.append(metric)
-
-    def get_single_sample_size(self, metric: BaseMetric) -> float:
+    def _get_single_sample_size(self, metric: BaseMetric) -> float:
         effect_size = metric.mde / float(np.sqrt(metric.variance))
         power_analysis = metric.power_analysis_instance
         sample_size = int(
@@ -69,14 +130,18 @@ class SampleSizeCalculator(MultipleTestingMixin):
         return sample_size
 
     def get_sample_size(self) -> float:
-        return self.get_multiple_sample_size()
+        return self._get_single_sample_size(self.metrics[0])
 
-    def register_metric(self, metric_type: str, metric_metadata: Dict[str, float]) -> None:
-        VAR_REGISTER_FUNC_MAP = {
-            "boolean": "register_bool_metric",
-            "numeric": "register_numeric_metric",
-            "ratio": "register_ratio_metric",
+    def register_metrics(self, metrics: List[Dict[str, Any]]) -> None:
+        METRIC_REGISTER_MAP = {
+            "boolean": BooleanMetric,
+            "numeric": NumericMetric,
+            "ratio": RatioMetric,
         }
 
-        register_func = getattr(self, VAR_REGISTER_FUNC_MAP[metric_type])
-        register_func(**metric_metadata)
+        validate(instance=metrics, schema=METRICS_SCHEMA)
+
+        for metric in metrics:
+            metric_class = METRIC_REGISTER_MAP[metric["metric_type"]]
+            registered_metric = metric_class(**metric["metric_metadata"])
+            self.metrics.append(registered_metric)

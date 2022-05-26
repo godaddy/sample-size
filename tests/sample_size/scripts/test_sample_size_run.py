@@ -9,21 +9,27 @@ from sample_size.scripts.sample_size_run import main
 class TestMain(unittest.TestCase):
     def setUp(self):
         self.DEFAULT_METRIC_TYPE = "boolean"
+        self.DEFAULT_VARIANTS = 2
         self.DEFAULT_METRIC_METADATA = {"test": "case"}
         self.DEFAULT_SAMPLE_SIZE = 2000
 
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator")
-    @patch("sample_size.scripts.input_utils.get_metric_metadata")
+    @patch("sample_size.scripts.input_utils.get_metrics")
     @patch("sample_size.scripts.input_utils.get_alpha")
+    @patch("sample_size.scripts.input_utils.get_variants")
     def test_main_alpha_input(
         self,
+        mock_get_variants,
         mock_get_alpha,
-        get_metric_metadata,
+        mock_get_metrics,
         mock_calculator,
     ):
         test_alpha = 0.01
+        mock_get_variants.return_value = self.DEFAULT_VARIANTS
         mock_get_alpha.return_value = test_alpha
-        get_metric_metadata.return_value = (self.DEFAULT_METRIC_TYPE, self.DEFAULT_METRIC_METADATA)
+        mock_get_metrics.return_value = [
+            {"metric_type": self.DEFAULT_METRIC_TYPE, "metric_metadata": self.DEFAULT_METRIC_METADATA}
+        ]
         calculator_obj = MagicMock()
         calculator_obj.get_sample_size.return_value = self.DEFAULT_SAMPLE_SIZE
         mock_calculator.return_value = calculator_obj
@@ -36,21 +42,21 @@ class TestMain(unittest.TestCase):
             )
 
         mock_get_alpha.assert_called_once()
-        get_metric_metadata.assert_called_once()
-        calculator_obj.register_metric.assert_called_once_with(
-            self.DEFAULT_METRIC_TYPE,
-            self.DEFAULT_METRIC_METADATA,
+        mock_get_variants.assert_called_once()
+        mock_get_metrics.assert_called_once()
+        calculator_obj.register_metrics.assert_called_once_with(
+            [{"metric_type": self.DEFAULT_METRIC_TYPE, "metric_metadata": self.DEFAULT_METRIC_METADATA}]
         )
         calculator_obj.get_sample_size.assert_called_once()
-        mock_calculator.assert_called_once_with(test_alpha)
+        mock_calculator.assert_called_once_with(test_alpha, self.DEFAULT_VARIANTS)
 
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator")
-    @patch("sample_size.scripts.input_utils.get_metric_metadata")
+    @patch("sample_size.scripts.input_utils.get_metrics")
     @patch("sample_size.scripts.input_utils.get_alpha")
     def test_main_exception_print(
         self,
         mock_get_alpha,
-        get_metric_metadata,
+        mock_get_metrics,
         mock_calculator,
     ):
         error_message = "wrong alpha"
@@ -65,4 +71,4 @@ class TestMain(unittest.TestCase):
 
         mock_get_alpha.assert_called_once()
         mock_calculator.assert_not_called()
-        get_metric_metadata.assert_not_called()
+        mock_get_metrics.assert_not_called()
