@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Collection
 from typing import Dict
 from typing import List
 
@@ -110,7 +110,7 @@ def register_another_metric() -> bool:
         raise ValueError("Error: Please enter 'y' or 'n'.")
 
 
-def get_metrics() -> List[Dict[str, Any]]:
+def get_metrics() -> List[Dict[str, Collection[str]]]:
     metrics = []
     while register_another_metric():
         metric_type = get_metric_type()
