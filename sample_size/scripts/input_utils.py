@@ -110,14 +110,11 @@ def register_another_metric() -> bool:
 
 
 def get_metrics() -> List[Dict[str, Any]]:
-    register = True
     metrics = []
-    while register:
+    while register_another_metric():
         metric_type = get_metric_type()
         metric_metadata = get_metric_parameters(METRIC_PARAMETERS[metric_type])
         metric_metadata["mde"] = get_mde(metric_type)
         metrics.append({"metric_type": metric_type, "metric_metadata": metric_metadata})
-
-        register = register_another_metric()
 
     return metrics
