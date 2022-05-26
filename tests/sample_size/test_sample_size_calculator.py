@@ -81,6 +81,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
             alternative="two-sided",
         )
 
+    # parameterize get overall sample size function
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
     def test_get_overall_sample_size_bool(self, mock_get_single_sample_size):
         test_metric_type = "boolean"
@@ -158,6 +159,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         assert_equal(mock_get_single_sample_size.call_args[0][0].covariance, test_covariance)
         assert_equal(mock_get_single_sample_size.call_args[0][0].mde, test_mde)
 
+    # parameterize register metric functions
     def test_register_metric_boolean(self):
         test_metric_type = "boolean"
         test_probability = 0.05
