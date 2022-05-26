@@ -8,7 +8,7 @@ from sample_size.metrics import BooleanMetric
 from sample_size.metrics import NumericMetric
 from sample_size.metrics import RatioMetric
 
-from .multiple_testing_funcs import MultipleTestingMixin
+from sample_size.multiple_testing import MultipleTestingMixin
 
 DEFAULT_ALPHA = 0.05
 DEFAULT_POWER = 0.8

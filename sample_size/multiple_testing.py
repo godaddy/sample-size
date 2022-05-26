@@ -21,9 +21,9 @@ class MultipleTestingMixin:
 
     def get_multiple_sample_size(self) -> int:
         if len(self.metrics) < 2:
-            return self.metrics[0].single_sample_size()
-        lower = max([metric.single_sample_size(self.alpha, self.power) for metric in self.metrics])
-        upper = max([metric.single_sample_size(self.alpha / self.m, self.power) for metric in self.metrics])
+            return self.metrics[0].get_single_sample_size()
+        lower = max([metric.get_single_sample_size(self.alpha, self.power) for metric in self.metrics])
+        upper = max([metric.get_single_sample_size(self.alpha / self.m, self.power) for metric in self.metrics])
 
         return self._find_sample_size(lower, upper)
 

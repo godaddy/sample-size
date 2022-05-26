@@ -148,6 +148,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
             alternative="two-sided",
         )
 
+
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
     def test_get_overall_sample_size_bool(self, mock_get_single_sample_size):
         test_sample_size = 2000
