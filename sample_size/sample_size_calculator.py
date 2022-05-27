@@ -9,6 +9,7 @@ from sample_size.metrics import BaseMetric
 from sample_size.metrics import BooleanMetric
 from sample_size.metrics import NumericMetric
 from sample_size.metrics import RatioMetric
+from sample_size.multiple_testing import MultipleTestingMixin
 
 DEFAULT_ALPHA = 0.05
 DEFAULT_POWER = 0.8
@@ -99,7 +100,7 @@ METRICS_SCHEMA = {
 }
 
 
-class SampleSizeCalculator:
+class SampleSizeCalculator(MultipleTestingMixin):
     """
     This class is to calculate sample size based on metric type
 
@@ -115,13 +116,13 @@ class SampleSizeCalculator:
         self.metrics: List[BaseMetric] = []
         self.variants: int = variants
 
-    def _get_single_sample_size(self, metric: BaseMetric) -> float:
+    def get_single_sample_size(self, metric: BaseMetric, alpha=self.alpha) -> float:
         effect_size = metric.mde / float(np.sqrt(metric.variance))
         power_analysis = metric.power_analysis_instance
         sample_size = int(
             power_analysis.solve_power(
                 effect_size=effect_size,
-                alpha=self.alpha,
+                alpha=alpha,
                 power=self.power,
                 ratio=1,
                 alternative="two-sided",
@@ -130,7 +131,7 @@ class SampleSizeCalculator:
         return sample_size
 
     def get_sample_size(self) -> float:
-        return self._get_single_sample_size(self.metrics[0])
+        return self.get_multiple_sample_size()
 
     def register_metrics(self, metrics: List[Dict[str, Any]]) -> None:
         METRIC_REGISTER_MAP = {

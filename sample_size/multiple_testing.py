@@ -1,10 +1,8 @@
 from typing import List
-
 import numpy as np
 from statsmodels.stats.multitest import multipletests
 
 from sample_size.metrics import BaseMetric
-from sample_size.sample_size_calculator import SampleSizeCalculator
 
 
 class MultipleTestingMixin:
@@ -18,16 +16,21 @@ class MultipleTestingMixin:
     power: statistical power
 
     """
+    metrics: List[BaseMetric]
+    alpha: float
+    power: float
+    variants: int
 
     def get_multiple_sample_size(self) -> int:
         if len(self.metrics) < 2:
-            return self.metrics[0].get_single_sample_size()
-        lower = max([metric.get_single_sample_size(self.alpha, self.power) for metric in self.metrics])
-        upper = max([metric.get_single_sample_size(self.alpha / self.m, self.power) for metric in self.metrics])
+            return self.get_single_sample_size(self.metrics[0])
+        lower = max([self.get_single_sample_size(metric) for metric in self.metrics])
+        upper = max(
+            [self.get_single_sample_size(metric, self.alpha / len(self.metrics)) for metric in self.metrics])
 
         return self._find_sample_size(lower, upper)
 
-    def _find_sample_size(self, lower: float, upper: float, depth=0):
+    def _find_sample_size(self, lower: float, upper: float, depth=0) -> int:
         MAX_RECURSION_DEPTH = 20
         EPSILON = 0.025
 
@@ -45,14 +48,17 @@ class MultipleTestingMixin:
         else:
             return self._find_sample_size(candidate, upper, depth + 1)
 
-    def _expected_average_power(self, sample_size: int):
+    def _expected_average_power(self, sample_size: int, REPLICATION=100) -> float:
         power = []
-        for m1 in range(1, self.m + 1):
-            alts = np.array([True] * m1 + [False] * (self.m - m1))
-            for _ in range(self.REPLICATION):
-                true_alt = alts[np.random.permutation(self.m)]
-                p_values = [self._generate_p_value(m, true_alt[i], sample_size) for i, m in enumerate(self.metrics)]
+        m = self.metrics * (self.variants - 1)
+        for m1 in range(m):
+            nulls = np.array([True] * m1 + [False] * (m - m1))
+            for _ in range(REPLICATION):
+                true_null = nulls[np.random.permutation(m)]
+                p_values = [m.generate_p_value(true_null[i], sample_size, self.variants) for i, m in
+                            enumerate(self.metrics)]
                 rejected = multipletests(p_values, alpha=self.alpha, method="fdr_bh")[0]
-                power.append(np.dot(rejected, true_alt) / m1)
+                power.append(sum(rejected[~true_null]) / m1)
+                # power.append(int(np.dot(rejected,  1-true_null)) / m1)
 
         return np.mean(power)
