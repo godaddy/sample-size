@@ -14,7 +14,8 @@ from sample_size.metrics import RatioMetric
 DEFAULT_ALPHA = 0.05
 DEFAULT_POWER = 0.8
 DEFAULT_VARIANTS = 2
-METRICS_SCHEMA = json.load(open("sample_size/metrics_schema.json"))
+with open("sample_size/metrics_schema.json", "r") as schema_file:
+    METRICS_SCHEMA = json.load(schema_file)
 
 
 class SampleSizeCalculator:
