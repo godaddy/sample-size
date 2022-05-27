@@ -1,3 +1,4 @@
+import json
 from typing import Any
 from typing import Dict
 from typing import List
@@ -13,90 +14,7 @@ from sample_size.metrics import RatioMetric
 DEFAULT_ALPHA = 0.05
 DEFAULT_POWER = 0.8
 DEFAULT_VARIANTS = 2
-METRICS_SCHEMA = {
-    "type": "array",
-    "items": {
-        "type": "object",
-        "properties": {
-            "metric_type": {
-                "type": "string",
-                "enum": ["boolean", "numeric", "ratio"],
-            },
-        },
-        "allOf": [
-            {
-                "if": {
-                    "properties": {
-                        "metric_type": {"const": "boolean"},
-                    },
-                },
-                "then": {
-                    "properties": {
-                        "metric_metadata": {
-                            "type": "object",
-                            "properties": {
-                                "mde": {"type": "number"},
-                                "probability": {"type": "number"},
-                            },
-                            "required": ["mde", "probability"],
-                        },
-                    },
-                },
-            },
-            {
-                "if": {
-                    "properties": {
-                        "metric_type": {"const": "numeric"},
-                    },
-                },
-                "then": {
-                    "properties": {
-                        "metric_metadata": {
-                            "type": "object",
-                            "properties": {
-                                "mde": {"type": "number"},
-                                "variance": {"type": "number"},
-                            },
-                            "required": ["mde", "variance"],
-                        },
-                    },
-                },
-            },
-            {
-                "if": {
-                    "properties": {
-                        "metric_type": {"const": "ratio"},
-                    },
-                },
-                "then": {
-                    "properties": {
-                        "metric_metadata": {
-                            "type": "object",
-                            "properties": {
-                                "mde": {"type": "number"},
-                                "numerator_mean": {"type": "number"},
-                                "numerator_variance": {"type": "number"},
-                                "denominator_mean": {"type": "number"},
-                                "denominator_variance": {"type": "number"},
-                                "covariance": {"type": "number"},
-                            },
-                            "required": [
-                                "mde",
-                                "numerator_mean",
-                                "numerator_variance",
-                                "denominator_mean",
-                                "denominator_variance",
-                                "covariance",
-                            ],
-                        },
-                    },
-                },
-            },
-        ],
-        "required": ["metric_type", "metric_metadata"],
-    },
-    "minItems": 1,
-}
+METRICS_SCHEMA = json.load(open("sample_size/metrics_schema.json"))
 
 
 class SampleSizeCalculator:
