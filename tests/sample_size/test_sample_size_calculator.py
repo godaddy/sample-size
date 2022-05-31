@@ -159,7 +159,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         assert_equal(mock_get_single_sample_size.call_args[0][0].covariance, test_covariance)
         assert_equal(mock_get_single_sample_size.call_args[0][0].mde, test_mde)
 
-    # parameterize register metric functions
+    # TODO: parameterize register metric functions
     def test_register_metric_boolean(self):
         test_metric_type = "boolean"
         test_probability = 0.05
