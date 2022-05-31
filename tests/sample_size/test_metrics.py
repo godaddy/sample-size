@@ -1,11 +1,7 @@
 import unittest
-from itertools import product
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-import numpy as np
-from numpy.testing import assert_array_equal
-from parameterized import parameterized
 from statsmodels.stats.power import NormalIndPower
 from statsmodels.stats.power import TTestIndPower
 
@@ -46,7 +42,7 @@ class BooleanMetricTestCase(unittest.TestCase):
         self.assertEqual(boolean.probability, self.DEFAULT_PROBABILITY)
         self.assertEqual(boolean.variance, self.DEFAULT_MOCK_VARIANCE)
         self.assertEqual(boolean.mde, self.DEFAULT_MDE)
-        self.assertIsInstance(boolean.power_analysis_instance, NormalIndPower)
+        self.assertIsInstance(boolean.default_power_analysis_instance, NormalIndPower)
 
     def test_boolean_metric_variance(self):
         boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE)
@@ -80,30 +76,6 @@ class BooleanMetricTestCase(unittest.TestCase):
             "Error: Please provide a float between 0 and 1 for probability.",
         )
 
-    @parameterized.expand(product([True, False], [2, 5], [200]))
-    @patch("sample_size.metrics.BooleanMetric.variance")
-    @patch("scipy.stats.uniform.rvs")
-    @patch("scipy.stats.norm")
-    def test_boolean_generate_p_value(self, true_null, variants, sample_size, mock_norm, mock_uniform, mock_variance):
-        p_value_generator = mock_uniform if true_null else mock_norm.sf
-        pval = MagicMock()
-        mock_norm.rvs.return_value = -ord("🌮")
-        p_value_generator.return_value = pval
-        mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_MOCK_VARIANCE)
-
-        boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE)
-        p = boolean.generate_p_value(true_null, sample_size, variants)
-
-        if true_null:
-            mock_uniform.assert_called_once_with(0, 1, size=variants - 1)
-            mock_norm.assert_not_called()
-        else:
-            effect_sample_size = self.DEFAULT_MDE / np.sqrt(2 * self.DEFAULT_MOCK_VARIANCE / sample_size)
-            mock_uniform.assert_not_called()
-            mock_norm.rvs.assert_called_once_with(loc=effect_sample_size, size=variants - 1)
-            mock_norm.sf.assert_called_once_with(np.abs(mock_norm.rvs.return_value))
-        assert_array_equal(p, pval)
-
 
 class NumericMetricTestCase(unittest.TestCase):
     def setUp(self):
@@ -116,31 +88,7 @@ class NumericMetricTestCase(unittest.TestCase):
 
         self.assertEqual(numeric.variance, self.DEFAULT_VARIANCE)
         self.assertEqual(numeric.mde, self.DEFAULT_MDE)
-        self.assertIsInstance(numeric.power_analysis_instance, TTestIndPower)
-
-    @parameterized.expand(product([True, False], [2, 5], [200]))
-    @patch("scipy.stats.uniform.rvs")
-    @patch("scipy.stats.nct.rvs")
-    @patch("scipy.stats.t.sf")
-    def test_numeric_generate_p_value(self, true_null, variants, sample_size, mock_t, mock_nct, mock_uniform):
-        p_value_generator = mock_uniform if true_null else mock_t
-        pval = MagicMock()
-        mock_nct.return_value = -ord("🌮")
-        p_value_generator.return_value = pval
-
-        numeric = NumericMetric(self.DEFAULT_VARIANCE, self.DEFAULT_MDE)
-        p = numeric.generate_p_value(true_null, sample_size, variants)
-
-        if true_null:
-            mock_uniform.assert_called_once_with(0, 1, size=variants - 1)
-            mock_nct.assert_not_called()
-            mock_t.assert_not_called()
-        else:
-            nc = np.sqrt(sample_size / 2) * self.DEFAULT_MDE / self.DEFAULT_VARIANCE
-            mock_uniform.assert_not_called()
-            mock_nct.assert_called_once_with(nc=nc, df=2 * (sample_size - 1), size=variants - 1)
-            mock_t.assert_called_once_with(np.abs(mock_nct.return_value), 2 * (sample_size - 1))
-        assert_array_equal(p, pval)
+        self.assertIsInstance(numeric.default_power_analysis_instance, TTestIndPower)
 
 
 class RatioMetricTestCase(unittest.TestCase):
@@ -172,7 +120,7 @@ class RatioMetricTestCase(unittest.TestCase):
         self.assertEqual(ratio.covariance, self.DEFAULT_COVARIANCE)
         self.assertEqual(ratio.variance, self.DEFAULT_VARIANCE)
         self.assertEqual(ratio.mde, self.DEFAULT_MDE)
-        self.assertIsInstance(ratio.power_analysis_instance, NormalIndPower)
+        self.assertIsInstance(ratio.default_power_analysis_instance, TTestIndPower)
 
     def test_ratio_metric_variance(self):
         ratio = RatioMetric(
@@ -185,35 +133,3 @@ class RatioMetricTestCase(unittest.TestCase):
         )
 
         self.assertEqual(ratio.variance, 5.0)
-
-    @parameterized.expand(product([True, False], [2, 5], [200]))
-    @patch("sample_size.metrics.RatioMetric.variance")
-    @patch("scipy.stats.uniform.rvs")
-    @patch("scipy.stats.norm")
-    def test_ratio_generate_p_value(self, true_null, variants, sample_size, mock_norm, mock_uniform, mock_variance):
-        p_value_generator = mock_uniform if true_null else mock_norm.sf
-        pval = MagicMock()
-        mock_norm.rvs.return_value = -ord("🌮")
-        p_value_generator.return_value = pval
-        mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_VARIANCE)
-
-        ratio = RatioMetric(
-            self.DEFAULT_NUMERATOR_MEAN,
-            self.DEFAULT_NUMERATOR_VARIANCE,
-            self.DEFAULT_DENOMINATOR_MEAN,
-            self.DEFAULT_DENOMINATOR_VARIANCE,
-            self.DEFAULT_COVARIANCE,
-            self.DEFAULT_MDE,
-        )
-
-        p = ratio.generate_p_value(true_null, sample_size, variants)
-
-        if true_null:
-            mock_uniform.assert_called_once_with(0, 1, size=variants - 1)
-            mock_norm.assert_not_called()
-        else:
-            effect_sample_size = self.DEFAULT_MDE / np.sqrt(2 * self.DEFAULT_VARIANCE / sample_size)
-            mock_uniform.assert_not_called()
-            mock_norm.rvs.assert_called_once_with(loc=effect_sample_size, size=variants - 1)
-            mock_norm.sf.assert_called_once_with(np.abs(mock_norm.rvs.return_value))
-        assert_array_equal(p, pval)
