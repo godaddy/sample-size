@@ -112,10 +112,15 @@ def register_another_metric() -> bool:
 
 def get_metrics() -> List[Dict[str, Collection[str]]]:
     metrics = []
-    while register_another_metric():
+
+    def get_metric() -> None:
         metric_type = get_metric_type()
         metric_metadata = get_metric_parameters(METRIC_PARAMETERS[metric_type])
         metric_metadata["mde"] = get_mde(metric_type)
         metrics.append({"metric_type": metric_type, "metric_metadata": metric_metadata})
+
+    get_metric()
+    while register_another_metric():
+        get_metric()
 
     return metrics

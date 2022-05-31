@@ -307,17 +307,24 @@ class UtilsTestCase(unittest.TestCase):
 
         mock_input.assert_called_once()
 
-    @patch("sample_size.scripts.input_utils.register_another_metric", side_effect=[True, False])
+    @patch("sample_size.scripts.input_utils.register_another_metric")
     @patch("sample_size.scripts.input_utils.get_mde")
     @patch("sample_size.scripts.input_utils.get_metric_parameters")
     @patch("sample_size.scripts.input_utils.get_metric_type")
-    def test_get_metric_single(self, mock_get_metric_type, mock_get_metric_parameters, mock_get_mde, mock_register):
+    def test_get_metrics_single(
+        self,
+        mock_get_metric_type,
+        mock_get_metric_parameters,
+        mock_get_mde,
+        mock_register_another_metric,
+    ):
         test_metric_type_lower = "boolean"
         test_metric_metadata = {"test": 0.01}
         test_mde = 0.05
         mock_get_metric_type.return_value = test_metric_type_lower
         mock_get_metric_parameters.return_value = test_metric_metadata
         mock_get_mde.return_value = test_mde
+        mock_register_another_metric.return_value = False
         test_metric_metadata = {"test": 0.01, "mde": test_mde}
 
         metric = input_utils.get_metrics()
@@ -325,7 +332,7 @@ class UtilsTestCase(unittest.TestCase):
             metric,
             [{"metric_type": test_metric_type_lower, "metric_metadata": test_metric_metadata}],
         )
-        self.assertEqual(mock_register.call_count, 2)
+        mock_register_another_metric.assert_called_once()
         mock_get_metric_type.assert_called_once()
         mock_get_metric_parameters.assert_called_once_with(input_utils.METRIC_PARAMETERS[test_metric_type_lower])
         mock_get_mde.assert_called_once_with(test_metric_type_lower)
