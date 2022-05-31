@@ -1,10 +1,8 @@
+from typing import Collection
 from typing import Dict
-from typing import Tuple
+from typing import List
 
 from sample_size.sample_size_calculator import DEFAULT_ALPHA
-
-# Consider simplify the code using https://github.com/pallets/click/
-
 
 METRIC_PARAMETERS = {
     "boolean": {"probability": "baseline probability (between 0 and 1)"},
@@ -80,9 +78,44 @@ def get_metric_parameters(parameter_definitions: Dict[str, str]) -> Dict[str, fl
     return parameters
 
 
-def get_metric_metadata() -> Tuple[str, Dict[str, float]]:
-    metric_type = get_metric_type().lower()
-    metric_metadata = get_metric_parameters(METRIC_PARAMETERS[metric_type])
-    metric_metadata["mde"] = get_mde(metric_type)
+def get_variants() -> int:
+    number_of_variants = (
+        input(
+            "Enter the number of cohorts for this test or Press Enter to use default variant = 2 if you have only 1 "
+            "control and 1 treatment. \n"
+            "definition: Control + number of treatments: "
+        )
+        .strip()
+        .lower()
+    )
+    if number_of_variants.isdigit():
+        if int(number_of_variants) < 2:
+            raise ValueError("Error: An experiment must contain at least 2 variants.")
+        return int(number_of_variants)
+    elif number_of_variants == "":
+        print("Using default variants(2)...")
+        return 2
+    else:
+        raise ValueError("Error: Please enter a positive integer for the number of variants.")
 
-    return metric_type, metric_metadata
+
+def register_another_metric() -> bool:
+    register = input("Are you going to register another metric? (y/n)").strip().lower()
+    if register == "y":
+        return True
+    elif register in ["n", ""]:
+        return False
+    else:
+        raise ValueError("Error: Please enter 'y' or 'n'.")
+
+
+# TODO: add the case of registering the first metric
+def get_metrics() -> List[Dict[str, Collection[str]]]:
+    metrics = []
+    while register_another_metric():
+        metric_type = get_metric_type()
+        metric_metadata = get_metric_parameters(METRIC_PARAMETERS[metric_type])
+        metric_metadata["mde"] = get_mde(metric_type)
+        metrics.append({"metric_type": metric_type, "metric_metadata": metric_metadata})
+
+    return metrics
