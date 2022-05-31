@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Collection
 from typing import Dict
 from typing import List
 
@@ -99,7 +99,6 @@ def get_variants() -> int:
         raise ValueError("Error: Please enter a positive integer for the number of variants.")
 
 
-# TODO: add the case of registering the first metric
 def register_another_metric() -> bool:
     register = input("Are you going to register another metric? (y/n)").strip().lower()
     if register == "y":
@@ -110,7 +109,8 @@ def register_another_metric() -> bool:
         raise ValueError("Error: Please enter 'y' or 'n'.")
 
 
-def get_metrics() -> List[Dict[str, Any]]:
+# TODO: add the case of registering the first metric
+def get_metrics() -> List[Dict[str, Collection[str]]]:
     metrics = []
     while register_another_metric():
         metric_type = get_metric_type()

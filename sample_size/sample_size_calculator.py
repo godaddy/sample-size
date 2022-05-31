@@ -1,3 +1,4 @@
+import json
 from typing import Any
 from typing import Dict
 from typing import List
@@ -9,98 +10,15 @@ from sample_size.metrics import BaseMetric
 from sample_size.metrics import BooleanMetric
 from sample_size.metrics import NumericMetric
 from sample_size.metrics import RatioMetric
-from sample_size.multiple_testing import MultipleTestingMixin
 
 DEFAULT_ALPHA = 0.05
 DEFAULT_POWER = 0.8
 DEFAULT_VARIANTS = 2
-METRICS_SCHEMA = {
-    "type": "array",
-    "items": {
-        "type": "object",
-        "properties": {
-            "metric_type": {
-                "type": "string",
-                "enum": ["boolean", "numeric", "ratio"],
-            },
-        },
-        "allOf": [
-            {
-                "if": {
-                    "properties": {
-                        "metric_type": {"const": "boolean"},
-                    },
-                },
-                "then": {
-                    "properties": {
-                        "metric_metadata": {
-                            "type": "object",
-                            "properties": {
-                                "mde": {"type": "number"},
-                                "probability": {"type": "number"},
-                            },
-                            "required": ["mde", "probability"],
-                        },
-                    },
-                },
-            },
-            {
-                "if": {
-                    "properties": {
-                        "metric_type": {"const": "numeric"},
-                    },
-                },
-                "then": {
-                    "properties": {
-                        "metric_metadata": {
-                            "type": "object",
-                            "properties": {
-                                "mde": {"type": "number"},
-                                "variance": {"type": "number"},
-                            },
-                            "required": ["mde", "variance"],
-                        },
-                    },
-                },
-            },
-            {
-                "if": {
-                    "properties": {
-                        "metric_type": {"const": "ratio"},
-                    },
-                },
-                "then": {
-                    "properties": {
-                        "metric_metadata": {
-                            "type": "object",
-                            "properties": {
-                                "mde": {"type": "number"},
-                                "numerator_mean": {"type": "number"},
-                                "numerator_variance": {"type": "number"},
-                                "denominator_mean": {"type": "number"},
-                                "denominator_variance": {"type": "number"},
-                                "covariance": {"type": "number"},
-                            },
-                            "required": [
-                                "mde",
-                                "numerator_mean",
-                                "numerator_variance",
-                                "denominator_mean",
-                                "denominator_variance",
-                                "covariance",
-                            ],
-                        },
-                    },
-                },
-            },
-        ],
-        "required": ["metric_type", "metric_metadata"],
-    },
-    "minItems": 1,
-}
+with open("sample_size/metrics_schema.json", "r") as schema_file:
+    METRICS_SCHEMA = json.load(schema_file)
 
 
-class SampleSizeCalculator(MultipleTestingMixin):
+class SampleSizeCalculator:
     """
     This class is to calculate sample size based on metric type
 
@@ -116,13 +34,13 @@ class SampleSizeCalculator(MultipleTestingMixin):
         self.metrics: List[BaseMetric] = []
         self.variants: int = variants
 
-    def get_single_sample_size(self, metric: BaseMetric, alpha=self.alpha) -> float:
+    def _get_single_sample_size(self, metric: BaseMetric) -> float:
         effect_size = metric.mde / float(np.sqrt(metric.variance))
         power_analysis = metric.power_analysis_instance
         sample_size = int(
             power_analysis.solve_power(
                 effect_size=effect_size,
-                alpha=alpha,
+                alpha=self.alpha,
                 power=self.power,
                 ratio=1,
                 alternative="two-sided",
@@ -131,7 +49,7 @@ class SampleSizeCalculator(MultipleTestingMixin):
         return sample_size
 
     def get_sample_size(self) -> float:
-        return self.get_multiple_sample_size()
+        return self._get_single_sample_size(self.metrics[0])
 
     def register_metrics(self, metrics: List[Dict[str, Any]]) -> None:
         METRIC_REGISTER_MAP = {
