@@ -1,6 +1,6 @@
 import unittest
-from unittest.mock import patch
 from unittest.mock import MagicMock
+from unittest.mock import patch
 
 from numpy.testing import assert_equal
 
@@ -74,7 +74,7 @@ class MultipleTestingTestCase(unittest.TestCase):
                 {"metric_type": test_metric_type, "metric_metadata": test_metric_metadata},
             ]
         )
-        sample_size=calculator.get_sample_size()
+        sample_size = calculator.get_sample_size()
 
         self.assertEqual(sample_size, ((test_upper + test_lower) / 2 + test_upper) / 2)
 
