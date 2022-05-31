@@ -8,8 +8,8 @@ from sample_size.scripts import input_utils
 
 class UtilsTestCase(unittest.TestCase):
     def setUp(self):
+        self.DEFAULT_VARIANTS = 2
         self.TEST_STR = "TEST"
-        self.TEST_SAMPLE_SIZE = 2000
 
     def test_is_float(self):
         happy_test_str = "0.1"
@@ -194,23 +194,138 @@ class UtilsTestCase(unittest.TestCase):
             },
         )
 
+    @patch("sample_size.scripts.input_utils.input")
+    def test_get_variants(self, mock_input):
+        test_input_int = 2
+        test_input_str = "2"
+        mock_input.return_value = test_input_str
+
+        variants = input_utils.get_variants()
+
+        self.assertEqual(variants, test_input_int)
+        mock_input.assert_called_once_with(
+            "Enter the number of cohorts for this test or Press Enter to use default variant = 2 if you have only 1 "
+            "control and 1 treatment. \n"
+            "definition: Control + number of treatments: "
+        )
+
+    @patch("sample_size.scripts.input_utils.input")
+    def test_get_variants_default(self, mock_input):
+        mock_input.return_value = " "
+
+        with patch("sys.stdout", new=StringIO()) as fakeOutput:
+            variants = input_utils.get_variants()
+            self.assertEqual(
+                fakeOutput.getvalue().strip(),
+                "Using default variants(2)...",
+            )
+
+        self.assertEqual(variants, self.DEFAULT_VARIANTS)
+        mock_input.assert_called_once()
+
+    @patch("sample_size.scripts.input_utils.input")
+    def test_get_variants_not_int(self, mock_input):
+        test_input_str = "2.5"
+        mock_input.return_value = test_input_str
+        with self.assertRaises(Exception) as context:
+            input_utils.get_variants()
+
+        self.assertEqual(
+            context.exception.args[0],
+            "Error: Please enter a positive integer for the number of variants.",
+        )
+
+        mock_input.assert_called_once()
+
+    @patch("sample_size.scripts.input_utils.input")
+    def test_get_variants_too_small(self, mock_input):
+        test_input_str = "1"
+        mock_input.return_value = test_input_str
+        with self.assertRaises(Exception) as context:
+            input_utils.get_variants()
+
+        self.assertEqual(
+            context.exception.args[0],
+            "Error: An experiment must contain at least 2 variants.",
+        )
+
+        mock_input.assert_called_once()
+
+    @patch("sample_size.scripts.input_utils.input")
+    def test_get_variants_negative(self, mock_input):
+        test_input_str = "-3"
+        mock_input.return_value = test_input_str
+        with self.assertRaises(Exception) as context:
+            input_utils.get_variants()
+
+        self.assertEqual(
+            context.exception.args[0],
+            "Error: Please enter a positive integer for the number of variants.",
+        )
+
+        mock_input.assert_called_once()
+
+    @patch("sample_size.scripts.input_utils.input")
+    def test_register_another_metric_yes(self, mock_input):
+        test_input_str = "y"
+        mock_input.return_value = test_input_str
+        register = input_utils.register_another_metric()
+
+        self.assertTrue(register)
+        mock_input.assert_called_once_with("Are you going to register another metric? (y/n)")
+
+    @patch("sample_size.scripts.input_utils.input")
+    def test_register_another_metric_no(self, mock_input):
+        test_input_str = "n"
+        mock_input.return_value = test_input_str
+        register = input_utils.register_another_metric()
+
+        self.assertFalse(register)
+        mock_input.assert_called_once()
+
+    @patch("sample_size.scripts.input_utils.input")
+    def test_register_another_metric_default(self, mock_input):
+        test_input_str = ""
+        mock_input.return_value = test_input_str
+        register = input_utils.register_another_metric()
+
+        self.assertFalse(register)
+        mock_input.assert_called_once()
+
+    @patch("sample_size.scripts.input_utils.input")
+    def test_register_another_metric_invalid(self, mock_input):
+        test_input_str = "yes"
+        mock_input.return_value = test_input_str
+
+        with self.assertRaises(Exception) as context:
+            input_utils.register_another_metric()
+
+        self.assertEqual(
+            context.exception.args[0],
+            "Error: Please enter 'y' or 'n'.",
+        )
+
+        mock_input.assert_called_once()
+
+    @patch("sample_size.scripts.input_utils.register_another_metric", side_effect=[True, False])
     @patch("sample_size.scripts.input_utils.get_mde")
     @patch("sample_size.scripts.input_utils.get_metric_parameters")
     @patch("sample_size.scripts.input_utils.get_metric_type")
-    def test_get_metric_metadata(self, mock_get_metric_type, mock_get_metric_parameters, mock_get_mde):
-        test_metric_type = "Boolean"
+    def test_get_metric_single(self, mock_get_metric_type, mock_get_metric_parameters, mock_get_mde, mock_register):
         test_metric_type_lower = "boolean"
         test_metric_metadata = {"test": 0.01}
         test_mde = 0.05
-        mock_get_metric_type.return_value = test_metric_type
+        mock_get_metric_type.return_value = test_metric_type_lower
         mock_get_metric_parameters.return_value = test_metric_metadata
         mock_get_mde.return_value = test_mde
         test_metric_metadata = {"test": 0.01, "mde": test_mde}
 
-        metric_type, metric_metadata = input_utils.get_metric_metadata()
-
-        self.assertEqual(metric_type, test_metric_type_lower)
-        self.assertEqual(metric_metadata, test_metric_metadata)
+        metric = input_utils.get_metrics()
+        self.assertEqual(
+            metric,
+            [{"metric_type": test_metric_type_lower, "metric_metadata": test_metric_metadata}],
+        )
+        self.assertEqual(mock_register.call_count, 2)
         mock_get_metric_type.assert_called_once()
         mock_get_metric_parameters.assert_called_once_with(input_utils.METRIC_PARAMETERS[test_metric_type_lower])
         mock_get_mde.assert_called_once_with(test_metric_type_lower)
