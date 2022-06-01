@@ -13,7 +13,7 @@ kernelspec:
   name: python3
   
 ---
-This notebook validates the p-value generation functions ```generate_p_value``` while the altrenative hypothesis is true by comparing:
+This notebook validates the p-value generation functions `generate_p_value` while the alternative hypothesis is true by comparing:
 * sampling raw observations from the metric's distribution, calculating its test statistics and p-value, with
 * directly sampling test statistics and calculating p-values from its distribution 
 
@@ -32,8 +32,19 @@ from tqdm import tqdm
 import pandas as pd
 import seaborn as sns
 
-#sampling from observations
+
 def obs_sample(δ, σ, n, size):
+    """
+    This function samples from normally distributed numeric metric's observations under true alternative hypothesis and calculates the samples' p-values
+
+    Attributes:
+    δ: the mean's shift from null hypothesis
+    σ: standard deviation
+    n: sample size
+    size: replication
+    
+    """
+    
     data = np.random.normal(loc=0, scale=σ, size=(2, size, n))
     data[1, :, :] += δ
 
@@ -44,8 +55,18 @@ def obs_sample(δ, σ, n, size):
 
     return diff / np.sqrt(2 * pooled_sample_var / n)
 
-#directly sampling test statistics, which has a [non-central t distribution](https://en.wikipedia.org/wiki/Noncentral_t-distribution) with a non-central parameter [nc](https://journals.sagepub.com/doi/pdf/10.1177/1536867X0400400205)
 def direct_sample(δ, σ, n, size):
+    """
+    This function samples from normally distributed metric's observations under true alternative hypothesis and calculates the samples' p-values
+
+    Attributes:
+    δ: the mean's shift from null hypothesis
+    σ: standard deviation
+    n: sample size
+    size: replication
+    
+    """
+      
     nc = np.sqrt(n/2) * δ / σ
 
     return nct.rvs(nc=nc, df=2*(n-1), size=size)
@@ -85,18 +106,33 @@ for _, σ, δ, n in tqdm(product(REPLICATIONS, SIGMA, DELTA, N)):
 
 results = pd.DataFrame(results)
 
-sns.histplot(p_values)
+p=sns.histplot(p_values)
+p.set_xlabel("p-value")
 
 g = sns.FacetGrid(results, col="σ",  row="δ",  hue='type')
 g.map(sns.histplot, "t")
 ```
 ![KStest_numeric0](KStest_numeric.png)
 ![matrix_numeric](matrix_numeric.png)
-```python
+
 ## Binomial and Ratio Metrics
 
-#sampling from observations
+Note: the test statistics has [non-central t distribution](https://en.wikipedia.org/wiki/Noncentral_t-distribution) with a non-central parameter [nc](https://journals.sagepub.com/doi/pdf/10.1177/1536867X0400400205)
+
+
+
+```python
 def obs_sample(δ, σ, n, size):
+    """
+    This function samples from normally distributed numeric metric's observations under true alternative hypothesis and calculates the samples' p-values
+    
+    Attributes:
+    δ: the mean's shift from null hypothesis
+    σ: standard deviation
+    n: sample size
+    size: replication
+    
+    """
     data = np.random.normal(loc=0, scale=σ, size=(2, size, n))
     data[1, :, :] += δ
 
@@ -105,8 +141,18 @@ def obs_sample(δ, σ, n, size):
 
     return diff / np.sqrt(2 * σ**2 / n)
 
-# directly sampling from a shifted normal distribution
 def direct_sample(δ, σ, n, size):
+    """
+    This function samples from normally distributed metric's observations under true alternative hypothesis and calculates the samples' p-values
+
+    Attributes:
+    δ: the mean's shift from null hypothesis
+    σ: standard deviation
+    n: sample size
+    size: replication
+    
+    """
+
     effect_size = δ / float(np.sqrt(2*σ**2/n))
     return stats.norm.rvs(loc=effect_size, size=size)
 
@@ -146,7 +192,8 @@ for _, σ, δ, n in tqdm(product(REPLICATIONS, SIGMA, DELTA, N)):
 
 results = pd.DataFrame(results)
 
-sns.histplot(p_values)
+p=sns.histplot(p_values)
+p.set_xlabel("p-value")
 
 g = sns.FacetGrid(results, col="σ",  row="δ",  hue='type')
 g.map(sns.histplot, "t")

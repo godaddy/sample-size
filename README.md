@@ -30,7 +30,7 @@ pip show sample-size # verify package was installed
 
 ### Start using the script
 
-`run-sample-size` will prompt your questions for you to enter the input it needs
+`run-sample-size` will prompt required questions for you to enter the input it needs
 
 ```bash
 run-sample-size
@@ -38,14 +38,18 @@ run-sample-size
 
 ### Script Constraints
 * This package supports 
-  * Up to 5 metrics per calculation
+  * Single and multiple metrics per calculation
+  * Multiple cohorts, i.e. more than one treatment variant, per calculation
   * Metric types: Boolean, Numeric, and Ratio
 * Default statistical power (80%) is used in `run-sample-size` all the time
 * Input constraints
   * alpha: (0, 0.3]
-  * variants: [2, <a href="https://www.codecogs.com/eqnedit.php?latex=\small&space;&plus;\infty" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\small&space;&plus;\infty" title="\small +\infty" /></a>]
   * probability (Boolean Metric): (0, 1)
   * variance (Numeric and Ratio Metrics): [0, <a href="https://www.codecogs.com/eqnedit.php?latex=\small&space;&plus;\infty" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\small&space;&plus;\infty" title="\small +\infty" /></a>)
+  * registered metrics: [1, <a href="https://www.codecogs.com/eqnedit.php?latex=\small&space;&plus;\infty" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\small&space;&plus;\infty" title="\small +\infty" /></a>]
+  * variants: [2, <a href="https://www.codecogs.com/eqnedit.php?latex=\small&space;&plus;\infty" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\small&space;&plus;\infty" title="\small +\infty" /></a>]
+  
+  Please be aware that we are running simulations many times when calculating sample size for multiple metrics or variants. Therefore, too many cohorts or metrics will have extremely long runtime.
 
 
 ## Contributing
