@@ -23,15 +23,7 @@ class MultipleTestingMixin:
     power: float
     variants: int
 
-    def get_multiple_sample_size(self) -> int:
-        if len(self.metrics) < 2:
-            return self.get_single_sample_size(self.metrics[0])
-        lower = max([self.get_single_sample_size(metric) for metric in self.metrics])
-        upper = max([self.get_single_sample_size(metric, self.alpha / len(self.metrics)) for metric in self.metrics])
-
-        return self._find_sample_size(lower, upper)
-
-    def _find_sample_size(self, lower: float, upper: float, depth: int = 0) -> int:
+    def get_multiple_sample_size(self, lower: float, upper: float, depth: int = 0) -> int:
         MAX_RECURSION_DEPTH = 20
         EPSILON = 0.025
 
@@ -45,13 +37,13 @@ class MultipleTestingMixin:
             return candidate
 
         if expected_power > self.power:
-            return self._find_sample_size(lower, candidate, depth + 1)
+            return self.get_multiple_sample_size(lower, candidate, depth + 1)
         else:
-            return self._find_sample_size(candidate, upper, depth + 1)
+            return self.get_multiple_sample_size(candidate, upper, depth + 1)
 
-    def _expected_average_power(self, sample_size: int, REPLICATION=100) -> float:
+    def _expected_average_power(self, sample_size: int, REPLICATION: int = 100) -> float:
         power = []
-        m = self.metrics * (self.variants - 1)
+        m = len(self.metrics) * (self.variants - 1)
         for m1 in range(m):
             nulls = np.array([True] * m1 + [False] * (m - m1))
             for _ in range(REPLICATION):
@@ -61,6 +53,5 @@ class MultipleTestingMixin:
                 ]
                 rejected = multipletests(p_values, alpha=self.alpha, method="fdr_bh")[0]
                 power.append(sum(rejected[~true_null]) / m1)
-                # power.append(int(np.dot(rejected,  1-true_null)) / m1)
 
-        return np.mean(power)
+        return float(np.mean(power))

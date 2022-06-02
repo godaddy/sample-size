@@ -1,7 +1,8 @@
 import unittest
+from unittest.mock import call
 from unittest.mock import patch
 
-from numpy.testing import assert_equal
+from parameterized import parameterized
 
 from sample_size.metrics import BooleanMetric
 from sample_size.metrics import NumericMetric
@@ -35,7 +36,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         self.assertEqual(calculator.power, DEFAULT_POWER)
         self.assertEqual(calculator.metrics, [])
 
-    @patch("statsmodels.stats.power.NormalIndPower.solve_power")  # consider parameterize the solver per metric type
+    @patch("statsmodels.stats.power.NormalIndPower.solve_power")
     def test_get_single_sample_size_normal(self, mock_solve_power):
         test_probability = 0.05
         test_mde = 0.02
@@ -47,7 +48,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         mock_solve_power.return_value = test_sample_size
 
         calculator = SampleSizeCalculator()
-        sample_size = calculator._get_single_sample_size(test_metric)
+        sample_size = calculator._get_single_sample_size(test_metric, calculator.alpha)
 
         self.assertEqual(sample_size, test_sample_size)
         mock_solve_power.assert_called_once_with(
@@ -70,7 +71,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         mock_solve_power.return_value = test_sample_size
         calculator = SampleSizeCalculator()
 
-        sample_size = calculator._get_single_sample_size(test_metric)
+        sample_size = calculator._get_single_sample_size(test_metric, calculator.alpha)
 
         self.assertEqual(sample_size, test_sample_size)
         mock_solve_power.assert_called_once_with(
@@ -81,83 +82,82 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
             alternative="two-sided",
         )
 
-    # parameterize get overall sample size function
+    @parameterized.expand(
+        [
+            ("boolean", {"probability": 0.05, "mde": 0.02}, BooleanMetric),
+            ("numeric", {"variance": 500, "mde": 5}, NumericMetric),
+            (
+                "ratio",
+                {
+                    "numerator_mean": 2000,
+                    "numerator_variance": 100000,
+                    "denominator_mean": 200,
+                    "denominator_variance": 2000,
+                    "covariance": 5000,
+                    "mde": 10,
+                },
+                RatioMetric,
+            ),
+        ]
+    )
+    @patch("sample_size.sample_size_calculator.SampleSizeCalculator.get_multiple_sample_size")
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
-    def test_get_overall_sample_size_bool(self, mock_get_single_sample_size):
+    def test_get_overall_sample_size_single(
+        self, metric_type, metadata, metric_class, mock_get_single_sample_size, mock_get_multiple_sample_size
+    ):
+        test_metric_type = metric_type
+        test_sample_size = 2000
+        mock_get_single_sample_size.return_value = test_sample_size
+
+        # test_mde = 0.02
+        # test_probability = 0.05
+        test_metric_metadata = metadata
+        calculator = SampleSizeCalculator()
+        calculator.register_metrics([{"metric_type": test_metric_type, "metric_metadata": test_metric_metadata}])
+
+        sample_size = calculator.get_sample_size()
+
+        self.assertEqual(sample_size, test_sample_size)
+        mock_get_single_sample_size.assert_called_once()
+        mock_get_multiple_sample_size.assert_not_called()
+        self.assertIsInstance(mock_get_single_sample_size.call_args[0][0], metric_class)
+        # assert_equal(mock_get_single_sample_size.call_args[0][0].probability, test_probability)
+        # assert_equal(mock_get_single_sample_size.call_args[0][0].mde, test_mde)
+
+    @patch("sample_size.sample_size_calculator.SampleSizeCalculator.get_multiple_sample_size")
+    @patch("sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
+    def test_get_overall_sample_size_multiple(self, mock_get_single_sample_size, mock_get_multiple_sample_size):
         test_metric_type = "boolean"
         test_sample_size = 2000
+        mock_get_multiple_sample_size.return_value = test_sample_size
         mock_get_single_sample_size.return_value = test_sample_size
 
-        test_mde = 0.02
-        test_probability = 0.05
-        test_metric_metadata = {"probability": test_probability, "mde": test_mde}
+        # test_mde = 0.02
+        # test_probability = 0.05
+        test_metric_metadata = {"probability": 0.05, "mde": 0.02}
         calculator = SampleSizeCalculator()
-        calculator.register_metrics([{"metric_type": test_metric_type, "metric_metadata": test_metric_metadata}])
+        calculator.register_metrics(
+            [
+                {"metric_type": test_metric_type, "metric_metadata": test_metric_metadata},
+                {"metric_type": test_metric_type, "metric_metadata": test_metric_metadata},
+            ]
+        )
 
         sample_size = calculator.get_sample_size()
 
         self.assertEqual(sample_size, test_sample_size)
-        mock_get_single_sample_size.assert_called_once()
-        self.assertIsInstance(mock_get_single_sample_size.call_args[0][0], BooleanMetric)
-        assert_equal(mock_get_single_sample_size.call_args[0][0].probability, test_probability)
-        assert_equal(mock_get_single_sample_size.call_args[0][0].mde, test_mde)
-
-    @patch("sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
-    def test_get_overall_sample_size_numeric(self, mock_get_single_sample_size):
-        test_metric_type = "numeric"
-        test_sample_size = 2000
-        mock_get_single_sample_size.return_value = test_sample_size
-
-        test_mde = 5
-        test_variance = 500
-        test_metric_metadata = {"variance": test_variance, "mde": test_mde}
-        calculator = SampleSizeCalculator()
-        calculator.register_metrics([{"metric_type": test_metric_type, "metric_metadata": test_metric_metadata}])
-
-        sample_size = calculator.get_sample_size()
-
-        self.assertEqual(sample_size, test_sample_size)
-        mock_get_single_sample_size.assert_called_once()
-        self.assertIsInstance(mock_get_single_sample_size.call_args[0][0], NumericMetric)
-        assert_equal(mock_get_single_sample_size.call_args[0][0].variance, test_variance)
-        assert_equal(mock_get_single_sample_size.call_args[0][0].mde, test_mde)
-
-    @patch("sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
-    def test_get_overall_sample_size_ratio(self, mock_get_single_sample_size):
-        test_metric_type = "ratio"
-        test_sample_size = 2000
-        mock_get_single_sample_size.return_value = test_sample_size
-
-        test_numerator_mean = 2000
-        test_numerator_variance = 100000
-        test_denominator_mean = 200
-        test_denominator_variance = 2000
-        test_covariance = 5000
-        test_mde = 10
-
-        test_metric_metadata = {
-            "numerator_mean": test_numerator_mean,
-            "numerator_variance": test_numerator_variance,
-            "denominator_mean": test_denominator_mean,
-            "denominator_variance": test_denominator_variance,
-            "covariance": test_covariance,
-            "mde": test_mde,
-        }
-
-        calculator = SampleSizeCalculator()
-        calculator.register_metrics([{"metric_type": test_metric_type, "metric_metadata": test_metric_metadata}])
-
-        sample_size = calculator.get_sample_size()
-
-        self.assertEqual(sample_size, test_sample_size)
-        mock_get_single_sample_size.assert_called_once()
-        self.assertIsInstance(mock_get_single_sample_size.call_args[0][0], RatioMetric)
-        assert_equal(mock_get_single_sample_size.call_args[0][0].numerator_mean, test_numerator_mean)
-        assert_equal(mock_get_single_sample_size.call_args[0][0].numerator_variance, test_numerator_variance)
-        assert_equal(mock_get_single_sample_size.call_args[0][0].denominator_mean, test_denominator_mean)
-        assert_equal(mock_get_single_sample_size.call_args[0][0].denominator_variance, test_denominator_variance)
-        assert_equal(mock_get_single_sample_size.call_args[0][0].covariance, test_covariance)
-        assert_equal(mock_get_single_sample_size.call_args[0][0].mde, test_mde)
+        mock_get_single_sample_size.assert_has_calls(
+            [
+                call(calculator.metrics[0], calculator.alpha),
+                call(calculator.metrics[1], calculator.alpha),
+                call(calculator.metrics[0], calculator.alpha / 2),
+                call(calculator.metrics[1], calculator.alpha / 2),
+            ]
+        )
+        mock_get_multiple_sample_size.assert_called_once_with(test_sample_size, test_sample_size)
+        # self.assertIsInstance(mock_get_single_sample_size.call_args[0][0], metric_class)
+        # assert_equal(mock_get_single_sample_size.call_args[0][0].probability, test_probability)
+        # assert_equal(mock_get_single_sample_size.call_args[0][0].mde, test_mde)
 
     # TODO: parameterize register metric functions
     def test_register_metric_boolean(self):
