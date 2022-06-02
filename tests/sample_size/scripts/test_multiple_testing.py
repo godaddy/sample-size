@@ -70,13 +70,14 @@ class MultipleTestingTestCase(unittest.TestCase):
                 {"metric_type": test_metric_type, "metric_metadata": test_metric_metadata},
             ]
         )
-        calculator.get_sample_size()
+
+        with self.assertRaises(Exception):
+            calculator.get_sample_size()
+
         self.assertEqual(mock_get_single_sample_size.call_count, 4)
         mock_expected_average_power.assert_called()
-        with self.assertRaises(Exception):
-            calculator.get_multiple_sample_size(test_lower, test_upper)
 
-    @patch("sample_size.multiple_testing.MultipleTestingMixin.generate_p_value")
+    @patch("sample_size.metrics.BooleanMetric.generate_p_value")
     @patch("statsmodels.stats.multitest.multipletests")
     def test_expected_average_power(self, mock_multipletests, mock_generate_p_value):
         test_lower = 100
@@ -96,7 +97,7 @@ class MultipleTestingTestCase(unittest.TestCase):
                 {"metric_type": test_metric_type, "metric_metadata": test_metric_metadata},
             ]
         )
-        replication = calculator.metrics * (calculator.variants - 1) * 100
+        replication = len(calculator.metrics) * (calculator.variants - 1) * 100
 
         sample_size = calculator.get_sample_size()
         self.assertEqual(mock_generate_p_value.call_count, replication)
