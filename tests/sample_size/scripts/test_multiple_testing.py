@@ -19,13 +19,26 @@ class MultipleTestingTestCase(unittest.TestCase):
         side_effect=[100, 100, 1000, 1000],
     )
     @patch("sample_size.multiple_testing.MultipleTestingMixin._expected_average_power", side_effect=[0.5, 0.8])
-    def test_get_multiple_sample_size(self, mock_expected_average_power, mock_get_single_sample_size):
+    def test_get_multiple_sample_size_too_low(self, mock_expected_average_power, mock_get_single_sample_size):
         calculator = SampleSizeCalculator()
         calculator.register_metrics([self.test_metric, self.test_metric])
         sample_size = calculator.get_sample_size()
         self.assertEqual(mock_get_single_sample_size.call_count, 4)
         self.assertEqual(mock_expected_average_power.call_count, 2)
         self.assertEqual(sample_size, ((self.test_upper + self.test_lower) / 2 + self.test_upper) / 2)
+
+    @patch(
+        "sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size",
+        side_effect=[100, 100, 1000, 1000],
+    )
+    @patch("sample_size.multiple_testing.MultipleTestingMixin._expected_average_power", side_effect=[1, 0.8])
+    def test_get_multiple_sample_size_too_high(self, mock_expected_average_power, mock_get_single_sample_size):
+        calculator = SampleSizeCalculator()
+        calculator.register_metrics([self.test_metric, self.test_metric])
+        sample_size = calculator.get_sample_size()
+        self.assertEqual(mock_get_single_sample_size.call_count, 4)
+        self.assertEqual(mock_expected_average_power.call_count, 2)
+        self.assertEqual(sample_size, ((self.test_upper + self.test_lower) / 2 + self.test_lower) / 2)
 
     @patch(
         "sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size",

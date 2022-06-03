@@ -109,7 +109,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         test_sample_size = 2000
         mock_get_single_sample_size.return_value = test_sample_size
 
-        # test_mde = 0.02
+        test_mde = metadata["mde"]
         # test_probability = 0.05
         test_metric_metadata = metadata
         calculator = SampleSizeCalculator()
@@ -122,7 +122,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         mock_get_multiple_sample_size.assert_not_called()
         self.assertIsInstance(mock_get_single_sample_size.call_args[0][0], metric_class)
         # assert_equal(mock_get_single_sample_size.call_args[0][0].probability, test_probability)
-        # assert_equal(mock_get_single_sample_size.call_args[0][0].mde, test_mde)
+        self.assertEqual(mock_get_single_sample_size.call_args[0][0].mde, test_mde)
 
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator.get_multiple_sample_size")
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
