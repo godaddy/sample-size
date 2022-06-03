@@ -54,6 +54,6 @@ class MultipleTestingMixin:
                     m.generate_p_value(true_null[i], sample_size, self.variants) for i, m in enumerate(self.metrics)
                 ]
                 rejected = multipletests(p_values, alpha=self.alpha, method="fdr_bh")[0]
-                power.append(sum(rejected[~true_null]) / m1)
+                power.append(sum(rejected[~true_null]) / (m - m1))
 
         return float(np.mean(power))
