@@ -38,8 +38,8 @@ def obs_sample(δ, σ, n, size):
     This function samples from normally distributed numeric metric's observations under true alternative hypothesis and calculates the samples' p-values
 
     Attributes:
-    δ: the mean's shift from null hypothesis
-    σ: standard deviation
+    δ: delta, the mean's shift from null hypothesis
+    σ: sigma, standard deviation
     n: sample size
     size: replication
     
@@ -60,8 +60,8 @@ def direct_sample(δ, σ, n, size):
     This function samples from normally distributed metric's observations under true alternative hypothesis and calculates the samples' p-values
 
     Attributes:
-    δ: the mean's shift from null hypothesis
-    σ: standard deviation
+    δ: delta, the mean's shift from null hypothesis
+    σ: sigma, standard deviation
     n: sample size
     size: replication
     
@@ -127,8 +127,8 @@ def obs_sample(δ, σ, n, size):
     This function samples from normally distributed numeric metric's observations under true alternative hypothesis and calculates the samples' p-values
     
     Attributes:
-    δ: the mean's shift from null hypothesis
-    σ: standard deviation
+    δ: delta, the mean's shift from null hypothesis
+    σ: sigma, standard deviation
     n: sample size
     size: replication
     
@@ -146,8 +146,8 @@ def direct_sample(δ, σ, n, size):
     This function samples from normally distributed metric's observations under true alternative hypothesis and calculates the samples' p-values
 
     Attributes:
-    δ: the mean's shift from null hypothesis
-    σ: standard deviation
+    δ: delta, the mean's shift from null hypothesis
+    σ: sigma, standard deviation
     n: sample size
     size: replication
     
