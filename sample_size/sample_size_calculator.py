@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from typing import Any
 from typing import Dict
 from typing import List
@@ -15,7 +16,9 @@ from sample_size.multiple_testing import MultipleTestingMixin
 DEFAULT_ALPHA = 0.05
 DEFAULT_POWER = 0.8
 DEFAULT_VARIANTS = 2
-with open("sample_size/metrics_schema.json", "r") as schema_file:
+
+schema_file_path = Path(Path(__file__).parent, "metrics_schema.json")
+with open(str(schema_file_path), "r") as schema_file:
     METRICS_SCHEMA = json.load(schema_file)
 
 

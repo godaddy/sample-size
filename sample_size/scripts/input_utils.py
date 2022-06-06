@@ -109,13 +109,16 @@ def register_another_metric() -> bool:
         raise ValueError("Error: Please enter 'y' or 'n'.")
 
 
-# TODO: add the case of registering the first metric
+def _get_metric() -> Dict[str, Collection[str]]:
+    metric_type = get_metric_type()
+    metric_metadata = get_metric_parameters(METRIC_PARAMETERS[metric_type])
+    metric_metadata["mde"] = get_mde(metric_type)
+    return {"metric_type": metric_type, "metric_metadata": metric_metadata}
+
+
 def get_metrics() -> List[Dict[str, Collection[str]]]:
-    metrics = []
+    metrics = [_get_metric()]
     while register_another_metric():
-        metric_type = get_metric_type()
-        metric_metadata = get_metric_parameters(METRIC_PARAMETERS[metric_type])
-        metric_metadata["mde"] = get_mde(metric_type)
-        metrics.append({"metric_type": metric_type, "metric_metadata": metric_metadata})
+        metrics.append(_get_metric())
 
     return metrics

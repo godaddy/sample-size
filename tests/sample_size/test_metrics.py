@@ -84,7 +84,6 @@ class BooleanMetricTestCase(unittest.TestCase):
     @patch("scipy.stats.uniform.rvs")
     @patch("scipy.stats.norm")
     def test_boolean_generate_p_value(self, true_null, sample_size, mock_norm, mock_uniform, mock_variance):
-        # sample_size = 200
         p_value_generator = mock_uniform if true_null else mock_norm.sf
         pval = MagicMock()
         mock_norm.rvs.return_value = -ord("🌮")

@@ -34,7 +34,7 @@ class MultipleTestingMixin:
 
         candidate = int(lower + (upper - lower) / 2)
         expected_power = self._expected_average_power(candidate)
-        if np.isclose(self.power, expected_power, epsilon):
+        if np.isclose(self.power, expected_power, epsilon) or (lower == upper and self.power < expected_power):
             return candidate
 
         if expected_power > self.power:
