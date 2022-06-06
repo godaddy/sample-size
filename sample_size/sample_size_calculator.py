@@ -50,10 +50,15 @@ class SampleSizeCalculator(MultipleTestingMixin):
         return sample_size
 
     def get_sample_size(self) -> float:
-        if len(self.metrics) < 2:
+        if len(self.metrics) * (self.variants - 1) < 2:
             return self._get_single_sample_size(self.metrics[0], self.alpha)
         lower = max([self._get_single_sample_size(metric, self.alpha) for metric in self.metrics])
-        upper = max([self._get_single_sample_size(metric, self.alpha / len(self.metrics)) for metric in self.metrics])
+        upper = max(
+            [
+                self._get_single_sample_size(metric, self.alpha / (len(self.metrics) * (self.variants - 1)))
+                for metric in self.metrics
+            ]
+        )
         return self.get_multiple_sample_size(lower, upper)
 
     def register_metrics(self, metrics: List[Dict[str, Any]]) -> None:

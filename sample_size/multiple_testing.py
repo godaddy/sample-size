@@ -23,7 +23,7 @@ class MultipleTestingMixin:
     power: float
     variants: int
 
-    REPLICATION: int = 100
+    REPLICATION: int = 500
 
     def get_multiple_sample_size(self, lower: float, upper: float, depth: int = 0) -> int:
         max_recursion_depth: int = 20
@@ -32,9 +32,8 @@ class MultipleTestingMixin:
         if depth > max_recursion_depth:
             raise RecursionError(f"Couldn't find a sample size that satisfies the power you requested: {self.power}")
 
-        candidate = int((upper + lower) / 2)
+        candidate = int(lower + (upper - lower) / 2)
         expected_power = self._expected_average_power(candidate)
-
         if np.isclose(self.power, expected_power, epsilon):
             return candidate
 
@@ -45,15 +44,24 @@ class MultipleTestingMixin:
 
     def _expected_average_power(self, sample_size: int, replication: int = REPLICATION) -> float:
         power = []
-        m = len(self.metrics) * (self.variants - 1)
-        for m1 in range(m):
-            nulls = np.array([True] * m1 + [False] * (m - m1))
+        num_of_tests = len(self.metrics) * (self.variants - 1)
+        for m1 in range(num_of_tests):
+            nulls = np.array([True] * m1 + [False] * (num_of_tests - m1))
             for _ in range(replication):
-                true_null = nulls[np.random.permutation(m)]
-                p_values = [
-                    m.generate_p_value(true_null[i], sample_size, self.variants) for i, m in enumerate(self.metrics)
-                ]
+                p_values = []
+                true_null = nulls[np.random.permutation(num_of_tests)]
+                for v in range(self.variants - 1):
+                    p_values.extend(
+                        [
+                            m.generate_p_value(
+                                true_null[v * len(self.metrics) + i],
+                                sample_size,
+                            )
+                            for i, m in enumerate(self.metrics)
+                        ]
+                    )
+
                 rejected = multipletests(p_values, alpha=self.alpha, method="fdr_bh")[0]
-                power.append(sum(rejected[~true_null]) / (m - m1))
+                power.append(sum(rejected[~true_null]) / (num_of_tests - m1))
 
         return float(np.mean(power))

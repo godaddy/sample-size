@@ -90,7 +90,7 @@ class MultipleTestingTestCase(unittest.TestCase):
 
         calculator = SampleSizeCalculator()
         calculator.register_metrics([self.test_metric, self.test_metric, self.test_metric])
-        replication = len(calculator.metrics) ** 2 * (calculator.variants - 1) * 100
+        replication = len(calculator.metrics) ** 2 * (calculator.variants - 1) * 500
 
         sample_size = calculator.get_multiple_sample_size(self.test_lower, self.test_upper)
         self.assertEqual(mock_generate_p_value.call_count, replication)

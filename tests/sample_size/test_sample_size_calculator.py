@@ -84,8 +84,8 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
 
     @parameterized.expand(
         [
-            ("boolean", {"probability": 0.05, "mde": 0.02}, BooleanMetric),
-            ("numeric", {"variance": 500, "mde": 5}, NumericMetric),
+            ("boolean", {"probability": 0.05, "mde": 0.02}),
+            ("numeric", {"variance": 500, "mde": 5}),
             (
                 "ratio",
                 {
@@ -96,21 +96,19 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
                     "covariance": 5000,
                     "mde": 10,
                 },
-                RatioMetric,
             ),
         ]
     )
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator.get_multiple_sample_size")
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
-    def test_get_overall_sample_size_single(
-        self, metric_type, metadata, metric_class, mock_get_single_sample_size, mock_get_multiple_sample_size
+    def test_get_sample_size_single(
+        self, metric_type, metadata, mock_get_single_sample_size, mock_get_multiple_sample_size
     ):
         test_metric_type = metric_type
         test_sample_size = 2000
         mock_get_single_sample_size.return_value = test_sample_size
 
         test_mde = metadata["mde"]
-        # test_probability = 0.05
         test_metric_metadata = metadata
         calculator = SampleSizeCalculator()
         calculator.register_metrics([{"metric_type": test_metric_type, "metric_metadata": test_metric_metadata}])
@@ -118,22 +116,18 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         sample_size = calculator.get_sample_size()
 
         self.assertEqual(sample_size, test_sample_size)
-        mock_get_single_sample_size.assert_called_once()
         mock_get_multiple_sample_size.assert_not_called()
-        self.assertIsInstance(mock_get_single_sample_size.call_args[0][0], metric_class)
-        # assert_equal(mock_get_single_sample_size.call_args[0][0].probability, test_probability)
+        mock_get_single_sample_size.assert_called_once()
+        self.assertEqual(mock_get_single_sample_size.call_args[0][0], calculator.metrics[0])
         self.assertEqual(mock_get_single_sample_size.call_args[0][0].mde, test_mde)
 
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator.get_multiple_sample_size")
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
-    def test_get_overall_sample_size_multiple(self, mock_get_single_sample_size, mock_get_multiple_sample_size):
+    def test_get_sample_size_multiple(self, mock_get_single_sample_size, mock_get_multiple_sample_size):
         test_metric_type = "boolean"
         test_sample_size = 2000
         mock_get_multiple_sample_size.return_value = test_sample_size
         mock_get_single_sample_size.return_value = test_sample_size
-
-        # test_mde = 0.02
-        # test_probability = 0.05
         test_metric_metadata = {"probability": 0.05, "mde": 0.02}
         calculator = SampleSizeCalculator()
         calculator.register_metrics(
@@ -146,6 +140,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         sample_size = calculator.get_sample_size()
 
         self.assertEqual(sample_size, test_sample_size)
+        self.assertEqual(mock_get_single_sample_size.call_count, 4)
         mock_get_single_sample_size.assert_has_calls(
             [
                 call(calculator.metrics[0], calculator.alpha),
@@ -155,9 +150,6 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
             ]
         )
         mock_get_multiple_sample_size.assert_called_once_with(test_sample_size, test_sample_size)
-        # self.assertIsInstance(mock_get_single_sample_size.call_args[0][0], metric_class)
-        # assert_equal(mock_get_single_sample_size.call_args[0][0].probability, test_probability)
-        # assert_equal(mock_get_single_sample_size.call_args[0][0].mde, test_mde)
 
     # TODO: parameterize register metric functions
     def test_register_metric_boolean(self):
