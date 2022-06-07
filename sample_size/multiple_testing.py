@@ -5,6 +5,8 @@ from statsmodels.stats.multitest import multipletests
 
 from sample_size.metrics import BaseMetric
 
+REPLICATION: int = 500
+
 
 class MultipleTestingMixin:
     """
@@ -14,7 +16,7 @@ class MultipleTestingMixin:
     metrics: a list of BaseMetric registered by users
     variants: number of variants, including control
     alpha: statistical significance
-    power: statistical power
+    power: average power, calculated as #correct rejections/#true alternative hypotheses
 
     """
 
@@ -23,9 +25,18 @@ class MultipleTestingMixin:
     power: float
     variants: int
 
-    REPLICATION: int = 500
-
     def get_multiple_sample_size(self, lower: float, upper: float, depth: int = 0) -> int:
+        """
+        This method finds minimum required sample size per cohort that generates average power higher than required
+
+        Attributes:
+        lower: lower bound of sample size search; maximum of each metric's individually calculated sample size
+        upper: upper bound of sample size search; maximum of each metric's individually calculated sample size,
+        with Bonferroni adjustment(alpha = alpha/number of tests)
+        depth: number of recursions
+
+        Returns minimum required sample size per cohort
+        """
         max_recursion_depth: int = 20
         epsilon: float = 0.025  # TODO(any): make this configurable by users ML-5429
 
@@ -43,10 +54,22 @@ class MultipleTestingMixin:
             return self.get_multiple_sample_size(candidate, upper, depth + 1)
 
     def _expected_average_power(self, sample_size: int, replication: int = REPLICATION) -> float:
+        """
+        This method calculates expected average power of multiple testings. For each possible number of true null
+        hypothesis, we simulate each metric/treatment variant's test statistics and calculate their p-values,
+        then calculate expected average power = number of True rejection/ true alternative hypotheses
+
+        Attributes:
+        sample size: determines the variance/ degrees of freedom of the distribution we sample test statistics from
+        replication: number of times we repeat the simulation process
+
+        Returns value expected average power
+        """
         power = []
         num_of_tests = len(self.metrics) * (self.variants - 1)
-        for m1 in range(num_of_tests):
-            nulls = np.array([True] * m1 + [False] * (num_of_tests - m1))
+        for num_true_null in range(num_of_tests):
+            num_true_alt = num_of_tests - num_true_null
+            nulls = np.array([True] * num_true_null + [False] * num_true_alt)
             for _ in range(replication):
                 p_values = []
                 true_null = nulls[np.random.permutation(num_of_tests)]
@@ -60,8 +83,6 @@ class MultipleTestingMixin:
                             for i, m in enumerate(self.metrics)
                         ]
                     )
-
                 rejected = multipletests(p_values, alpha=self.alpha, method="fdr_bh")[0]
-                power.append(sum(rejected[~true_null]) / (num_of_tests - m1))
-
+                power.append(sum(rejected[~true_null]) / num_true_alt)
         return float(np.mean(power))
