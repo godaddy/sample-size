@@ -1,6 +1,5 @@
 import unittest
 from unittest.mock import patch
-
 from parameterized import parameterized
 
 from sample_size.sample_size_calculator import SampleSizeCalculator
