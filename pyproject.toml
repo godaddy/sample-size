@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sample-size"
-version = "1.0.0"
+version = "2.0.0"
 description = "A python module implementing power analysis to estimate sample size"
 authors = []
 include = ["CHANGELOG.md", "README.md"]
