@@ -74,4 +74,4 @@ class MultipleTestingTestCase(unittest.TestCase):
         calculator.register_metrics([self.test_metric, self.test_metric, self.test_metric])
         expected_power = calculator._expected_average_power(test_size)
         inflated_power = calculator._expected_average_power(test_size * 10)
-        self.assertTrue(inflated_power > expected_power)
+        self.assertGreater(inflated_power, expected_power)
