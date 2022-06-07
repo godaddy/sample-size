@@ -19,7 +19,7 @@ class MultipleTestingTestCase(unittest.TestCase):
     @parameterized.expand([(0,), (1,)])
     @patch(
         "sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size",
-        side_effect=[100, 100, 1000, 1000],
+        side_effect=[100, 100, 100, 1000, 1000, 1000],
     )
     @patch("sample_size.multiple_testing.MultipleTestingMixin._expected_average_power")
     def test_get_multiple_sample_size_quickly_converge(
@@ -27,9 +27,10 @@ class MultipleTestingTestCase(unittest.TestCase):
     ):
         mock_expected_average_power.side_effect = [power_guess, 0.8]
         calculator = SampleSizeCalculator()
-        calculator.register_metrics([self.test_metric, self.test_metric])
+        calculator.register_metrics([self.test_metric, self.test_metric, self.test_metric])
+        expected_call_count = len(calculator.metrics) * 2
         sample_size = calculator.get_sample_size()
-        self.assertEqual(mock_get_single_sample_size.call_count, 4)
+        self.assertEqual(mock_get_single_sample_size.call_count, expected_call_count)
         self.assertEqual(mock_expected_average_power.call_count, 2)
         self.assertEqual(
             sample_size,
@@ -38,14 +39,14 @@ class MultipleTestingTestCase(unittest.TestCase):
 
     @patch(
         "sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size",
-        side_effect=[100, 100, 1000, 1000],
+        side_effect=[100, 100, 100, 1000, 1000, 1000],
     )
     @patch("sample_size.multiple_testing.MultipleTestingMixin._expected_average_power")
     def test_get_multiple_sample_size_no_recursion(self, mock_expected_average_power, mock_get_single_sample_size):
         mock_expected_average_power.return_value = 0.79
 
         calculator = SampleSizeCalculator()
-        calculator.register_metrics([self.test_metric, self.test_metric])
+        calculator.register_metrics([self.test_metric, self.test_metric, self.test_metric])
         expected_call_count = len(calculator.metrics) * 2
 
         sample_size = calculator.get_sample_size()
