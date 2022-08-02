@@ -5,7 +5,6 @@ import numpy as np
 from statsmodels.stats.multitest import multipletests
 
 from sample_size.metrics import BaseMetric
-import warnings
 
 
 class MultipleTestingMixin:
@@ -26,7 +25,13 @@ class MultipleTestingMixin:
     variants: int
 
     def get_multiple_sample_size(
-        self, lower: float, upper: float, replication: int, epsilon: float, max_recursion_depth: int, depth: int = 0,
+        self,
+        lower: float,
+        upper: float,
+        replication: int,
+        epsilon: float,
+        max_recursion_depth: int,
+        depth: int = 0,
     ) -> int:
         """
         This method finds minimum required sample size per cohort that generates average power higher than required
@@ -68,7 +73,6 @@ class MultipleTestingMixin:
 
         Returns value expected average power
         """
-        rejected_count = 0
         true_alt_count = 0
 
         # a metric for each test we would conduct
@@ -76,7 +80,7 @@ class MultipleTestingMixin:
 
         def fdr_bh(a):
             return multipletests(a, alpha=self.alpha, method="fdr_bh")[0]
-        
+
         power = []
         for num_true_alt in range(1, len(metrics) + 1):
             true_alt_count += num_true_alt * replication
@@ -88,12 +92,12 @@ class MultipleTestingMixin:
                 p_values.append(m.generate_p_values(true_alt[i], sample_size))
 
             rejected = np.apply_along_axis(fdr_bh, 0, np.array(p_values))
-            
+
             true_discoveries = rejected & true_alt
 
             power.append(true_discoveries.sum() / true_alt.sum())
-        
+
         return np.array(power).mean()
+
+
 # -
-
-

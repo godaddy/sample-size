@@ -33,7 +33,7 @@ class BaseMetric:
         else:
             return number
 
-    def generate_p_values(self, true_alt: bool, sample_size: int) -> float:
+    def generate_p_values(self, true_alt: np.array, sample_size: int) -> float:
         """
         This method simulates any registered metric's p-value. The output will later be applied to BH procedure
 
@@ -56,14 +56,16 @@ class BaseMetric:
 
     @abstractmethod
     def _generate_alt_p_values(self, size: int, sample_size: int) -> np.array:
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class BooleanMetric(BaseMetric):
     probability: float
 
     def __init__(
-        self, probability: float, mde: float,
+        self,
+        probability: float,
+        mde: float,
     ):
         super(BooleanMetric, self).__init__(mde)
         self.probability = self._check_probability(probability)
@@ -93,7 +95,9 @@ class NumericMetric(BaseMetric):
     mde: float
 
     def __init__(
-        self, variance: float, mde: float,
+        self,
+        variance: float,
+        mde: float,
     ):
         super(NumericMetric, self).__init__(mde)
         self._variance = self.check_positive(variance, "variance")

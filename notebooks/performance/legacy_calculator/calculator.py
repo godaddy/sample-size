@@ -1,12 +1,9 @@
 # +
-import json
-from pathlib import Path
 from typing import Any
 from typing import Dict
 from typing import List
 
 import numpy as np
-from jsonschema import validate
 
 from .metrics import BaseMetric
 from .metrics import BooleanMetric
@@ -40,7 +37,11 @@ class SampleSizeCalculator(MultipleTestingMixin):
         power_analysis = metric.power_analysis_instance
         sample_size = int(
             power_analysis.solve_power(
-                effect_size=effect_size, alpha=alpha, power=self.power, ratio=1, alternative="two-sided",
+                effect_size=effect_size,
+                alpha=alpha,
+                power=self.power,
+                ratio=1,
+                alternative="two-sided",
             )
         )
         return sample_size

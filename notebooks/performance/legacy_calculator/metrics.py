@@ -53,7 +53,9 @@ class BooleanMetric(BaseMetric):
     mde: float
 
     def __init__(
-        self, probability: float, mde: float,
+        self,
+        probability: float,
+        mde: float,
     ):
         super(BooleanMetric, self).__init__(mde)
         self.probability = self._check_probability(probability)
@@ -87,7 +89,9 @@ class NumericMetric(BaseMetric):
     mde: float
 
     def __init__(
-        self, variance: float, mde: float,
+        self,
+        variance: float,
+        mde: float,
     ):
         super(NumericMetric, self).__init__(mde)
         self._variance = self.check_positive(variance, "variance")

@@ -75,7 +75,10 @@ class MultipleTestingMixin:
                 for v in range(self.variants - 1):
                     p_values.extend(
                         [
-                            m.generate_p_value(true_null[v * len(self.metrics) + i], sample_size,)
+                            m.generate_p_value(
+                                true_null[v * len(self.metrics) + i],
+                                sample_size,
+                            )
                             for i, m in enumerate(self.metrics)
                         ]
                     )
