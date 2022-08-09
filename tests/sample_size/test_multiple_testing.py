@@ -1,4 +1,6 @@
 import unittest
+from itertools import cycle
+from itertools import product
 from unittest.mock import patch
 
 import numpy as np
@@ -65,9 +67,9 @@ class MultipleTestingTestCase(unittest.TestCase):
         self.assertEqual(sample_size, geom_mean)
 
     @patch("sample_size.multiple_testing.MultipleTestingMixin._expected_average_power")
-    def test_get_multiple_sample_size_no_solution(self, mock_expected_power):
+    def test_get_multiple_sample_size_converges_without_solution(self, mock_expected_power):
         mock_expected_power.return_value = 0
-        test_power = 0.8
+
         calculator = SampleSizeCalculator()
         calculator.register_metrics([self.test_metric, self.test_metric])
 
@@ -75,13 +77,45 @@ class MultipleTestingTestCase(unittest.TestCase):
             calculator.get_sample_size()
         self.assertEqual(
             str(context.exception),
-            f"Couldn't find a sample size that satisfies the power you requested: {test_power}",
+            f"Couldn't find a sample size that satisfies the power you requested: {DEFAULT_POWER}",
+        )
+
+    @patch("sample_size.multiple_testing.MultipleTestingMixin._expected_average_power")
+    def test_get_multiple_sample_size_does_not_converge(self, mock_expected_power):
+        delta = 2 * DEFAULT_EPSILON
+        alternating_power = cycle([DEFAULT_POWER - delta, DEFAULT_POWER + delta])
+        mock_expected_power.side_effect = lambda *_: next(alternating_power)
+
+        calculator = SampleSizeCalculator()
+        calculator.register_metrics([self.test_metric, self.test_metric])
+
+        with self.assertRaises(Exception) as context:
+            calculator.get_sample_size()
+        self.assertEqual(
+            str(context.exception),
+            f"Couldn't find a sample size that satisfies the power you requested: {DEFAULT_POWER}",
         )
 
     @parameterized.expand([(10,), (100,), (1000,)])
-    def test_expected_average_power(self, test_size):
+    def test_expected_average_power_satisfies_inequality(self, test_size):
         calculator = SampleSizeCalculator()
         calculator.register_metrics([self.test_metric, self.test_metric, self.test_metric])
         expected_power = calculator._expected_average_power(test_size)
         inflated_power = calculator._expected_average_power(test_size * 10)
         self.assertGreater(inflated_power, expected_power)
+
+    @parameterized.expand(product((10, 100, 500, 1000), (0.1, 0.2, 0.5, 0.8, 0.9)))
+    @patch("sample_size.multiple_testing.multipletests")
+    def test_expected_average_power_is_a_reasonable_approximation(self, replications, true_power, mock_fdr):
+        # We are setting the rejection rate to true_power
+        # Because we are randomly permuting the indices of the true alternative hypotheses
+        # we can conceptualize that aspect as random sampling
+        rng = np.random.RandomState(1024)
+        mock_fdr.side_effect = lambda a, **kw: [rng.random(len(a)) < true_power]
+
+        sample_size = 10  # arbitrary
+        calculator = SampleSizeCalculator()
+        calculator.register_metrics([self.test_metric] * 2)
+        empirical_power = calculator._expected_average_power(sample_size, replications)
+        margin_of_error = 1 / np.sqrt(replications)  # proportional to 1 σ
+        self.assertAlmostEqual(true_power, empirical_power, delta=margin_of_error)
