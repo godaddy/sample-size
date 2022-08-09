@@ -74,7 +74,8 @@ class MultipleTestingMixin:
 
         Returns value expected average power
         """
-        true_alt_count = 0
+        true_alt_count = 0.0
+        true_discovery_count = 0.0
 
         # a metric for each test we would conduct
         metrics = self.metrics * (self.variants - 1)
@@ -83,11 +84,7 @@ class MultipleTestingMixin:
             rejected: npt.NDArray[np.bool_] = multipletests(a, alpha=self.alpha, method="fdr_bh")[0]
             return rejected
 
-        power = []
-
         for num_true_alt in range(1, len(metrics) + 1):
-            true_alt_count += num_true_alt * replication
-
             true_alt = np.array([np.random.permutation(len(metrics)) < num_true_alt for _ in range(replication)]).T
 
             p_values = []
@@ -98,8 +95,9 @@ class MultipleTestingMixin:
 
             true_discoveries = rejected & true_alt
 
-            power.append(true_discoveries.sum() / true_alt.sum())
+            true_discovery_count += true_discoveries.sum()
+            true_alt_count += true_alt.sum()
 
-        avg_power: float = np.array(power).mean()
+        avg_power = true_discovery_count / true_alt_count
 
         return avg_power
