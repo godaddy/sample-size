@@ -3,6 +3,7 @@ from abc import abstractmethod
 from typing import Union
 
 import numpy as np
+import numpy.typing as npt
 from scipy import stats
 from statsmodels.stats.power import NormalIndPower
 from statsmodels.stats.power import TTestIndPower
@@ -32,8 +33,7 @@ class BaseMetric:
         else:
             return number
 
-    @abstractmethod
-    def generate_p_value(self, true_null: bool, sample_size: int) -> float:
+    def generate_p_values(self, true_alt: npt.NDArray[np.bool_], sample_size: int) -> npt.NDArray[np.float_]:
         """
         This method simulates any registered metric's p-value. The output will later be applied to BH procedure
 
@@ -44,6 +44,17 @@ class BaseMetric:
         Returns:
             p-value: the simulated test statistics' p-value
         """
+        total_alt = true_alt.sum()
+        total_null = true_alt.size - total_alt
+
+        p_values = np.empty(true_alt.shape)
+        p_values[true_alt] = self._generate_alt_p_values(total_alt, sample_size)
+        p_values[~true_alt] = stats.uniform.rvs(0, 1, total_null)
+
+        return p_values
+
+    @abstractmethod
+    def _generate_alt_p_values(self, size: int, sample_size: int) -> npt.NDArray[np.float_]:
         raise NotImplementedError
 
 
@@ -74,14 +85,11 @@ class BooleanMetric(BaseMetric):
         else:
             raise ValueError("Error: Please provide a float between 0 and 1 for probability.")
 
-    def generate_p_value(self, true_null: bool, sample_size: int) -> float:
-        if true_null:
-            return float(stats.uniform.rvs(0, 1))
-
-        else:
-            effect_size = self.mde / np.sqrt(2 * self.variance / sample_size)
-            z_alt = stats.norm.rvs(loc=effect_size)
-            return float(2 * stats.norm.sf(np.abs(z_alt)))
+    def _generate_alt_p_values(self, size: int, sample_size: int) -> npt.NDArray[np.float_]:
+        effect_size = self.mde / np.sqrt(2 * self.variance / sample_size)
+        z_alt = stats.norm.rvs(loc=effect_size, size=size)
+        p_values: npt.NDArray[np.float_] = 2 * stats.norm.sf(np.abs(z_alt))
+        return p_values
 
 
 class NumericMetric(BaseMetric):
@@ -103,14 +111,11 @@ class NumericMetric(BaseMetric):
     def power_analysis_instance(self) -> TTestIndPower:
         return TTestIndPower()
 
-    def generate_p_value(self, true_null: bool, sample_size: int) -> float:
-        if true_null:
-            return float(stats.uniform.rvs(0, 1))
-
-        else:
-            nc = np.sqrt(sample_size / 2 / self.variance) * self.mde
-            t_alt = stats.nct.rvs(nc=nc, df=2 * (sample_size - 1))
-            return float(2 * stats.t.sf(np.abs(t_alt), 2 * (sample_size - 1)))
+    def _generate_alt_p_values(self, size: int, sample_size: int) -> npt.NDArray[np.float_]:
+        nc = np.sqrt(sample_size / 2 / self.variance) * self.mde
+        t_alt = stats.nct.rvs(nc=nc, df=2 * (sample_size - 1), size=size)
+        p_values: npt.NDArray[np.float_] = 2 * stats.t.sf(np.abs(t_alt), 2 * (sample_size - 1))
+        return p_values
 
 
 class RatioMetric(BaseMetric):
@@ -130,6 +135,7 @@ class RatioMetric(BaseMetric):
         mde: float,
     ):
         super(RatioMetric, self).__init__(mde)
+        # TODO: add check for Cauchy-Schwarz inequality
         self.numerator_mean = numerator_mean
         self.numerator_variance = self.check_positive(numerator_variance, "numerator variance")
         self.denominator_mean = denominator_mean
@@ -150,11 +156,8 @@ class RatioMetric(BaseMetric):
     def power_analysis_instance(self) -> NormalIndPower:
         return NormalIndPower()
 
-    def generate_p_value(self, true_null: bool, sample_size: int) -> float:
-        if true_null:
-            return float(stats.uniform.rvs(0, 1))
-
-        else:
-            effect_size = self.mde / np.sqrt(2 * self.variance / sample_size)
-            z_alt = stats.norm.rvs(loc=effect_size)
-            return float(2 * stats.norm.sf(np.abs(z_alt)))
+    def _generate_alt_p_values(self, size: int, sample_size: int) -> npt.NDArray[np.float_]:
+        effect_size = self.mde / np.sqrt(2 * self.variance / sample_size)
+        z_alt = stats.norm.rvs(loc=effect_size, size=size)
+        p_values: npt.NDArray[np.float_] = 2 * stats.norm.sf(np.abs(z_alt))
+        return p_values
