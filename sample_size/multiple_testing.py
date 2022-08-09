@@ -39,11 +39,13 @@ class MultipleTestingMixin:
     ) -> int:
         """
         This method finds minimum required sample size per cohort that generates average power higher than required
+
         Attributes:
         lower: lower bound of sample size search; maximum of each metric's individually calculated sample size
         upper: upper bound of sample size search; maximum of each metric's individually calculated sample size,
         with Bonferroni adjustment(alpha = alpha/number of tests)
         depth: number of recursions
+
         Returns minimum required sample size per cohort
         """
 
