@@ -38,15 +38,21 @@ class MultipleTestingMixin:
         max_recursion_depth: int = DEFAULT_MAX_RECURSION,
     ) -> int:
         """
-        This method finds minimum required sample size per cohort that generates average power higher than required
+        This method finds minimum required sample size per cohort that generates
+        average power higher than required
 
         Attributes:
-        lower: lower bound of sample size search; maximum of each metric's individually calculated sample size
-        upper: upper bound of sample size search; maximum of each metric's individually calculated sample size,
-        with Bonferroni adjustment(alpha = alpha/number of tests)
-        depth: number of recursions
+            lower: lower bound of sample size search
+            upper: upper bound of sample size search
+            depth: number of recursions
+            replication: number of Monte Carlo simulations to calculate empirical power
+            epsilon: absolute difference between our estimate for power and desired power
+                needed before we will return
+            max_recursion_depth: how many recursive calls can be made before the
+                search is abandoned
 
-        Returns minimum required sample size per cohort
+        Returns
+            minimum required sample size per cohort
         """
 
         if depth > max_recursion_depth:

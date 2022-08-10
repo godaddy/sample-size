@@ -64,7 +64,7 @@ class UtilsTestCase(unittest.TestCase):
 
         self.assertEqual(alpha, test_input_float)
         mock_input.assert_called_once_with(
-            "Enter the alpha between (between 0 and 0.3 inclusively) " "or press Enter to use default alpha=0.05: "
+            "Enter the alpha between (between 0 and 0.4 inclusively) " "or press Enter to use default alpha=0.05: "
         )
         mock_get_float.assert_called_once_with(test_input_str, "alpha")
 
@@ -96,7 +96,7 @@ class UtilsTestCase(unittest.TestCase):
 
         self.assertEqual(
             context.exception.args[0],
-            "Error: Please provide a float between 0 and 0.3 for alpha.",
+            "Error: Please provide a float between 0 and 0.4 for alpha.",
         )
         mock_input.assert_called_once()
         mock_get_float.assert_called_once()
@@ -113,7 +113,7 @@ class UtilsTestCase(unittest.TestCase):
 
         self.assertEqual(
             context.exception.args[0],
-            "Error: Please provide a float between 0 and 0.3 for alpha.",
+            "Error: Please provide a float between 0 and 0.4 for alpha.",
         )
         mock_input.assert_called_once()
         mock_get_float.assert_called_once()

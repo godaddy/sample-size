@@ -35,7 +35,7 @@ def get_float(input_str: str, input_name: str) -> float:
 
 def get_alpha() -> float:
     alpha_input = input(
-        "Enter the alpha between (between 0 and 0.3 inclusively) or press Enter to use default alpha=0.05: "
+        "Enter the alpha between (between 0 and 0.4 inclusively) or press Enter to use default alpha=0.05: "
     ).strip()
 
     if alpha_input == "":
@@ -43,11 +43,11 @@ def get_alpha() -> float:
         return DEFAULT_ALPHA
     else:
         alpha = get_float(alpha_input, "alpha")
-        if 0 < alpha <= 0.3:
+        if 0 < alpha <= 0.4:
             print(f"Using alpha ({alpha}) and default power (0.8)...")
             return alpha
         else:
-            raise ValueError("Error: Please provide a float between 0 and 0.3 for alpha.")
+            raise ValueError("Error: Please provide a float between 0 and 0.4 for alpha.")
 
 
 def get_mde(metric_type: str) -> float:

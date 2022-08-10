@@ -35,14 +35,18 @@ class BaseMetric:
 
     def generate_p_values(self, true_alt: npt.NDArray[np.bool_], sample_size: int) -> npt.NDArray[np.float_]:
         """
-        This method simulates any registered metric's p-value. The output will later be applied to BH procedure
+        This method simulates any registered metric's p-value. The output will
+        later be applied to BH procedure
 
         Parameters:
-            true_null: whether the null hypothesis is true
-            sample_size: sample size used for simulations
+            true_null: A boolean array of shape (m hypotheses x replications).
+            Each element represents whether the alternative hypothesis is true
+            for an individual hypothesis sample_size: sample size used for
+            simulations
 
         Returns:
-            p-value: the simulated test statistics' p-value
+            p-value: A float array of shape (m hypotheses x replications) of
+            simulated p-values 
         """
         total_alt = true_alt.sum()
         total_null = true_alt.size - total_alt
