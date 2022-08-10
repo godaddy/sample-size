@@ -46,7 +46,7 @@ class BaseMetric:
 
         Returns:
             p-value: A float array of shape (m hypotheses x replications) of
-            simulated p-values 
+            simulated p-values
         """
         total_alt = true_alt.sum()
         total_null = true_alt.size - total_alt
