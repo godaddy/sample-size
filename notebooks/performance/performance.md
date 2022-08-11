@@ -115,7 +115,7 @@ pd.DataFrame(
 
 Historically the power calculator has used these values:
 
-```python3
+```python
 REPLICATIONS = 500
 EPSILON = 0.05
 MAX_DEPTH = 20
@@ -144,33 +144,77 @@ to select a trade-off with time complexity in order to then choose `EPSILON`.
 These empirical estimates are called for _each_ recursive call.
 
 ```python
+def get_filename(*args, **kwargs):
+    if not (args or kwargs):
+        return f"./simulations/default.feather"
+
+    return f"./simulations/{args}-{kwargs}.feather"
+
+
+def save_to_disk(simulate):
+    # TODO: 
+    def save_simulation(*args, **kwargs):
+        df = simulate(*args, **kwargs)
+        filename = get_filename(*args, **kwargs)
+
+        df.to_feather(filename)
+
+        return filename
+
+    return save_simulation
+
+
+SEED = 1
 RESOLUTION = 15
-REPLICATION_NUBMER = np.exp(np.linspace(4, 7, RESOLUTION)).astype(int)
-SAMPLE_SIZES = np.exp(np.linspace(3, 8, RESOLUTION // 2)).astype(int)
-
+REPLICATION_LOG_BOUNDS = (4, 7)
+SAMPLE_SIZE_LOG_BOUNDS = (3, 8)
 N_REPEATS = 10
-
-N_METRICS = [3, 4, 5]
-DATA_VERSIONS = [*product(range(4), N_METRICS)]
-
-results = []
-
-TOTAL_SIMULATIONS = (
-    N_REPEATS * len(DATA_VERSIONS) * len(REPLICATION_NUBMER) * len(SAMPLE_SIZES)
-)
+N_SIMULTANEOUS_HYPOTHESES = [2, 3, 4, 5]
+DATA_SEEDS = range(3)
 
 
-def run_simulation():
+@save_to_disk
+def simulate(
+    seed=SEED,
+    n_repeats=N_REPEATS,
+    resolution=RESOLUTION,
+    data_seeds=None,
+    n_simultaneous_hypotheses=None,
+    sample_size_log_bounds=None,
+    replication_log_bounds=None,
+):
+    n_simultaneous_hypotheses = n_simultaneous_hypotheses or N_SIMULTANEOUS_HYPOTHESES
+    sample_size_log_bounds = sample_size_log_bounds or SAMPLE_SIZE_LOG_BOUNDS
+    replication_log_bounds = replication_log_bounds or REPLICATION_LOG_BOUNDS
+    data_seeds = data_seeds or DATA_SEEDS
+
+    replication_params = np.exp(np.linspace(*replication_log_bounds, RESOLUTION))
+
+    sample_size_params = np.exp(np.linspace(*sample_size_log_bounds, RESOLUTION // 2))
+
+    data_versions = [*product(data_seeds, n_simultaneous_hypotheses)]
+
+    TOTAL_SIMULATIONS = (
+        n_repeats
+        * len(data_versions)
+        * len(replication_params)
+        * len(sample_size_params)
+    )
+
+    np.random.seed(seed)
+
+    results = []
+
     with tqdm(total=TOTAL_SIMULATIONS, ncols=100, smoothing=0.005) as pbar:
-        for data_ver, m in DATA_VERSIONS:
+        for data_ver, m in data_versions:
             metric_generator = MockMetricGenerator(data_ver)
             mocks = metric_generator.generate_metrics(m)
             calculator = SampleSizeCalculator()
             calculator.register_metrics(mocks)
 
-            for _ in range(N_REPEATS):
-                for sample_size in SAMPLE_SIZES:
-                    for rep in REPLICATION_NUBMER:
+            for _ in range(n_repeats):
+                for sample_size in sample_size_params.astype(int):
+                    for rep in replication_params.astype(int):
                         start = time.time()
                         power = calculator._expected_average_power(sample_size, rep)
                         duration = time.time() - start
@@ -189,31 +233,26 @@ def run_simulation():
 
                         pbar.update(1)
 
-    pd.DataFrame(results).to_feather("empirical_power.csv")
+    df = pd.DataFrame(results)
+
+    CATEGORICAL = ["rep", "sample_size", "data_ver", "m", "equal_power_group"]
+    df[CATEGORICAL] = df[CATEGORICAL].astype("category")
+
+    return df
+```
+
+```python
+# filename = simulate()
+df = pd.read_feather(f"./simulations/default.feather")
+
+mb = "{:,.2f}".format(df.memory_usage(deep=True).sum() / 10**6)
+print(f"Using {mb} Mb of memory")
 ```
 
 As you can see, duration is calculated directly from how long the simulation
 takes on my local machine. Presumably these durations will be proportional to
 durations in any other setting with adequate memory
 
-```python
-def color_pallette(opacity=1, colors=px.colors.qualitative.Plotly):
-    pallette = []
-    for color in colors:
-        color = color[1:]
-        rgb = []
-        for i in (0, 2, 4):
-            decimal = int(color[i : i + 2], 16)
-            rgb.append(f"{decimal}")
-
-        pallette.append(f"rgba({','.join(rgb)},{opacity})")
-    return pallette
-```
-
-```python
-# run_simulation()
-df = pd.read_feather("empirical_power.csv")
-```
 
 We have no "ground" truth for power here, so we'll assume that the average over
 all of our simulation repeats and Monte Carlo replication values represents
@@ -221,7 +260,8 @@ something close to the truth. We can use that value as a basis for estimating
 errors.
 
 ```python
-error = lambda x: np.abs(x - x.mean())
+error = lambda x: x - x.mean()
+
 
 equal_powered_groups = df.groupby("equal_power_group")
 
@@ -229,19 +269,33 @@ df["error"] = equal_powered_groups["power"].transform(error)
 ```
 
 ```python
-jitter = 5 * np.random.random(size=len(df.index))
+def color_palette(opacity=1, colors=px.colors.qualitative.Plotly):
+    palette = []
+    for color in colors:
+        color = color[1:]
+        rgb = []
+        for i in (0, 2, 4):
+            decimal = int(color[i : i + 2], 16)
+            rgb.append(f"{decimal}")
+
+        palette.append(f"rgba({','.join(rgb)},{opacity})")
+    return palette
+```
+
+```python
+jitter = 6 * np.random.random(size=len(df.index))
 
 px.scatter(
     df,
-    x=df["rep"] + jitter,
+    x=df["rep"].astype('int') + jitter,
     y="error",
     height=700,
     color="duration",
-    color_continuous_scale=color_pallette(opacity=0.1, colors=["#ff0000", "#0000ff"]),
+    color_continuous_scale=color_palette(opacity=0.05, colors=["#ff0000", "#0000ff"]),
+    title="Deviation of power estimate with respect to grand mean",
     labels={
         "x": "replications (with jitter)",
         "y": "error",
-        "title": "Absolute error with respect to replication count",
     },
 )
 ```
@@ -252,19 +306,21 @@ duration.
 
 ```python
 df["squared_error"] = df["error"] ** 2
+df["error"] = np.abs(df["error"])
 
 df.groupby("rep")[["error", "squared_error", "duration"]].agg(
     [("mean", np.mean), ("95th percentile", lambda x: np.quantile(np.abs(x), 0.95))]
-).reset_index()
+)
 ```
 
 The table above reveals that for a desired `EPSILON` of 1% choices greater than
 ~400 should be adequate. If we assume an initial search space where the initial
 bounds upper and lower bounds yield power 1 and power 0 respectively, in the
 best case we could be able to converge on the true power in roughly $\log_2
-\frac{1}{\epsilon}$, which for an `EPSILON` of 1% corresponds to $\approx 7$.
-Extrapolating based on duration, for my machine, this would yield a search time
-of around 0.675 seconds, which is in line with previous benchmarking efforts.
+\frac{1}{\epsilon}$, which for an `EPSILON` of 1% corresponds to $\approx 7$
+recursive calls. Extrapolating based on duration, for my machine, this would
+yield a search time of around 0.675 seconds, which is in line with previous
+benchmarking efforts.
 
 I recommend we use the following parameter values
 
