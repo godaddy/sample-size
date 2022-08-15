@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sample-size"
-version = "2.0.0"
+version = "2.0.1"
 description = "A python module implementing power analysis to estimate sample size"
 authors = []
 include = ["CHANGELOG.md", "README.md"]
@@ -14,11 +14,11 @@ statsmodels = "^0.13.1"
 jsonschema = "^4.5.1"
 
 [tool.poetry.dev-dependencies]
-flake8 = "^4.0"
+flake8 = "^5.0"
 coverage = "^6.3"
 isort = "^5.6.3"
 black = "^21.7b0"
-mypy = "^0.960"
+mypy = "^0.971"
 pytest = "^7.0.0"
 pytest-sugar = "^0.9.4"
 pytest-cov = "^3.0.0"
