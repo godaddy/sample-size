@@ -1,3 +1,11 @@
+v2.0.1 - 2022-08-15
+----------------------
+
+Other changes:
+
+* [#42](https://github.com/godaddy/sample-size/pull/42) - Performance improvements
+* [#44](https://github.com/godaddy/sample-size/pull/44) - Update internal parameters for binary search
+
 v2.0.0 - 2022-06-08
 ----------------------
 
