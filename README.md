@@ -54,7 +54,7 @@ graph LR
   * Metric types: Boolean, Numeric, and Ratio
 * Default statistical power (80%) is used in `run-sample-size` all the time
 * Input constraints
-  * alpha: (0, 0.3]
+  * alpha: (0, 0.4]
   * probability (Boolean Metric): (0, 1)
   * variance (Numeric and Ratio Metrics): [0, <a href="https://www.codecogs.com/eqnedit.php?latex=\small&space;&plus;\infty" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\small&space;&plus;\infty" title="\small +\infty" /></a>)
   * registered metrics: [1, <a href="https://www.codecogs.com/eqnedit.php?latex=\small&space;&plus;\infty" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\small&space;&plus;\infty" title="\small +\infty" /></a>]
