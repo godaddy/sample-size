@@ -55,3 +55,11 @@ run-sample-size
 ## Contributing
 
 All contributors and contributions are welcome! Please see the [contributing docs](CONTRIBUTING.md) for more information.
+
+```mermaid
+  graph TD;
+      A-->B;
+      A-->C;
+      B-->D;
+      C-->D;
+```
