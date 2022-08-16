@@ -36,6 +36,17 @@ pip show sample-size # verify package was installed
 run-sample-size
 ```
 
+The prompts follow the form:
+```mermaid
+graph LR
+    A(Alpha) --> B(Variants)
+    B --> C(Metric Type)
+    C --> D(Metadata)
+    D --> E(MDE)
+    E --> F{{Register another metric?}}
+    F --> C & G(Sample Size)
+```
+
 ### Script Constraints
 * This package supports 
   * Single and multiple metrics per calculation
@@ -55,11 +66,3 @@ run-sample-size
 ## Contributing
 
 All contributors and contributions are welcome! Please see the [contributing docs](CONTRIBUTING.md) for more information.
-
-```mermaid
-  graph TD;
-      A-->B;
-      A-->C;
-      B-->D;
-      C-->D;
-```
