@@ -2,6 +2,7 @@ from typing import List
 
 import numpy as np
 import numpy.typing as npt
+from numpy.random import RandomState
 from statsmodels.stats.multitest import multipletests
 
 from sample_size.metrics import BaseMetric
@@ -93,8 +94,7 @@ class MultipleTestingMixin:
             return rejected
 
         for num_true_alt in range(1, len(metrics) + 1):
-            true_alt = np.array([np.random.permutation(len(metrics)) < num_true_alt for _ in range(replication)]).T
-
+            true_alt = np.array([RandomState(1).permutation(len(metrics)) < num_true_alt for _ in range(replication)]).T
             p_values = []
             for i, m in enumerate(metrics):
                 p_values.append(m.generate_p_values(true_alt[i], sample_size))
