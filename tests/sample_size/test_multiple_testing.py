@@ -96,6 +96,35 @@ class MultipleTestingTestCase(unittest.TestCase):
             f"Couldn't find a sample size that satisfies the power you requested: {DEFAULT_POWER}",
         )
 
+    @parameterized.expand(
+        [
+            ("boolean", {"probability": 0.05, "mde": 0.02}, 1908),
+            ("numeric", {"variance": 5000, "mde": 5}, 3177),
+            (
+                "ratio",
+                {
+                    "numerator_mean": 500,
+                    "numerator_variance": 500000,
+                    "denominator_mean": 20,
+                    "denominator_variance": 2000,
+                    "covariance": 25000,
+                    "mde": 1,
+                },
+                20096,
+            ),
+        ],
+    )
+    def test_get_multiple_sample_size_fixed_output(self, metric_type, metadata, test_sample_size):
+        test_metric = {"metric_type": metric_type, "metric_metadata": metadata}
+
+        calculator = SampleSizeCalculator()
+        calculator.register_metrics([test_metric] * 2)
+
+        for s in range(1, 6):
+            np.random.seed(s)
+            sample_size = calculator.get_sample_size()
+            self.assertEqual(sample_size, test_sample_size)
+
     @parameterized.expand([(10,), (100,), (1000,)])
     def test_expected_average_power_satisfies_inequality(self, test_size):
         calculator = SampleSizeCalculator()

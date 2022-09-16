@@ -1,9 +1,7 @@
 import unittest
-from itertools import product
 from unittest.mock import call
 from unittest.mock import patch
 
-import numpy as np
 from parameterized import parameterized
 
 from sample_size.metrics import BooleanMetric
@@ -123,42 +121,14 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         self.assertEqual(mock_get_single_sample_size.call_args[0][0], calculator.metrics[0])
         self.assertEqual(mock_get_single_sample_size.call_args[0][0].mde, test_mde)
 
-    @parameterized.expand(
-        product(
-            (s for s in range(1, 6)),
-            ("boolean", {"probability": 0.05, "mde": 0.02}, 1908),
-            ("numeric", {"variance": 500, "mde": 5}, 3177),
-            (
-                "ratio",
-                {
-                    "numerator_mean": 500,
-                    "numerator_variance": 500000,
-                    "denominator_mean": 20,
-                    "denominator_variance": 2000,
-                    "covariance": 25000,
-                    "mde": 1,
-                },
-                20096,
-            ),
-        )
-    )
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator.get_multiple_sample_size")
     @patch("sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
-    def test_get_sample_size_multiple(
-        self,
-        random_seed,
-        metric_type,
-        metadata,
-        test_sample_size,
-        mock_get_single_sample_size,
-        mock_get_multiple_sample_size,
-    ):
-        test_metric_type = metric_type
-        test_metric_metadata = metadata
-
-        test_sample_size = test_sample_size
+    def test_get_sample_size_multiple(self, mock_get_single_sample_size, mock_get_multiple_sample_size):
+        test_metric_type = "boolean"
+        test_sample_size = 2000
         mock_get_multiple_sample_size.return_value = test_sample_size
         mock_get_single_sample_size.return_value = test_sample_size
+        test_metric_metadata = {"probability": 0.05, "mde": 0.02}
         calculator = SampleSizeCalculator()
         calculator.register_metrics(
             [
@@ -166,7 +136,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
                 {"metric_type": test_metric_type, "metric_metadata": test_metric_metadata},
             ]
         )
-        np.random.seed(random_seed)
+
         sample_size = calculator.get_sample_size()
 
         self.assertEqual(sample_size, test_sample_size)
