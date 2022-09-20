@@ -113,20 +113,19 @@ class MultipleTestingTestCase(unittest.TestCase):
     @parameterized.expand(
         [
             (TEST_BOOLEAN, 1908, 1),
-            (TEST_NUMERIC, 3177, 1),
-            (TEST_RATIO, 20096, 1),
-            (TEST_BOOLEAN, 1908, 2),
-            (TEST_NUMERIC, 3177, 3),
-            (TEST_RATIO, 20096, 3),
+            (TEST_NUMERIC, 3455, 2),
+            (TEST_RATIO, 21593, 3),
+            (TEST_BOOLEAN, 2051, 7),
+            (TEST_NUMERIC, 3215, 5),
+            (TEST_RATIO, 20096, 6),
         ]
     )
     def test_get_multiple_sample_size_fixed_output(self, test_metric, test_sample_size, seed):
-        calculator = SampleSizeCalculator()
-        calculator.register_metrics([test_metric] * 2)
-
-        np.random.seed(seed)
-        sample_size = calculator.get_sample_size()
-        self.assertEqual(sample_size, test_sample_size)
+        with patch("sample_size.metrics.RANDOM_SEED", seed):
+            calculator = SampleSizeCalculator()
+            calculator.register_metrics([test_metric] * 2)
+            sample_size = calculator.get_sample_size()
+            self.assertEqual(sample_size, test_sample_size)
 
     @parameterized.expand([(10,), (100,), (1000,)])
     def test_expected_average_power_satisfies_inequality(self, test_size):
