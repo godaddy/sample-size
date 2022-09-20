@@ -10,6 +10,7 @@ from parameterized import parameterized
 from statsmodels.stats.power import NormalIndPower
 from statsmodels.stats.power import TTestIndPower
 
+from sample_size.metrics import RANDOM_SEED
 from sample_size.metrics import BaseMetric
 from sample_size.metrics import BooleanMetric
 from sample_size.metrics import NumericMetric
@@ -128,7 +129,7 @@ class BooleanMetricTestCase(unittest.TestCase):
         p = metric._generate_alt_p_values(size, sample_size)
 
         effect_sample_size = self.DEFAULT_MDE / np.sqrt(2 * self.DEFAULT_MOCK_VARIANCE / sample_size)
-        mock_norm.rvs.assert_called_once_with(loc=effect_sample_size, size=size, random_state=1)
+        mock_norm.rvs.assert_called_once_with(loc=effect_sample_size, size=size, random_state=RANDOM_SEED)
         mock_norm.sf.assert_called_once_with(np.abs(mock_norm.rvs.return_value))
         assert_array_equal(p, p_values)
 
@@ -161,7 +162,7 @@ class NumericMetricTestCase(unittest.TestCase):
 
         effect_sample_size = np.sqrt(sample_size / 2 / self.DEFAULT_VARIANCE) * self.DEFAULT_MDE
         df = 2 * (sample_size - 1)
-        mock_nct.rvs.assert_called_once_with(nc=effect_sample_size, df=df, size=size, random_state=1)
+        mock_nct.rvs.assert_called_once_with(nc=effect_sample_size, df=df, size=size, random_state=RANDOM_SEED)
         mock_t.sf.assert_called_once_with(np.abs(mock_nct.rvs.return_value), df)
         assert_array_equal(p, p_values)
 
@@ -231,6 +232,6 @@ class RatioMetricTestCase(unittest.TestCase):
         p = metric._generate_alt_p_values(size, sample_size)
 
         effect_sample_size = self.DEFAULT_MDE / np.sqrt(2 * self.DEFAULT_VARIANCE / sample_size)
-        mock_norm.rvs.assert_called_once_with(loc=effect_sample_size, size=size, random_state=1)
+        mock_norm.rvs.assert_called_once_with(loc=effect_sample_size, size=size, random_state=RANDOM_SEED)
         mock_norm.sf.assert_called_once_with(np.abs(mock_norm.rvs.return_value))
         assert_array_equal(p, p_values)
