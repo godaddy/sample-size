@@ -12,6 +12,20 @@ from sample_size.sample_size_calculator import DEFAULT_ALPHA
 from sample_size.sample_size_calculator import DEFAULT_POWER
 from sample_size.sample_size_calculator import SampleSizeCalculator
 
+TEST_BOOLEAN = {"metric_type": "boolean", "metric_metadata": {"probability": 0.05, "mde": 0.02}}
+TEST_NUMERIC = {"metric_type": "numeric", "metric_metadata": {"variance": 5000, "mde": 5}}
+TEST_RATIO = {
+    "metric_type": "ratio",
+    "metric_metadata": {
+        "numerator_mean": 500,
+        "numerator_variance": 500000,
+        "denominator_mean": 20,
+        "denominator_variance": 2000,
+        "covariance": 25000,
+        "mde": 1,
+    },
+}
+
 
 class MultipleTestingTestCase(unittest.TestCase):
     def setUp(self):
@@ -98,32 +112,21 @@ class MultipleTestingTestCase(unittest.TestCase):
 
     @parameterized.expand(
         [
-            ("boolean", {"probability": 0.05, "mde": 0.02}, 1908),
-            ("numeric", {"variance": 5000, "mde": 5}, 3177),
-            (
-                "ratio",
-                {
-                    "numerator_mean": 500,
-                    "numerator_variance": 500000,
-                    "denominator_mean": 20,
-                    "denominator_variance": 2000,
-                    "covariance": 25000,
-                    "mde": 1,
-                },
-                20096,
-            ),
-        ],
+            (TEST_BOOLEAN, 1908, 1),
+            (TEST_NUMERIC, 3177, 1),
+            (TEST_RATIO, 20096, 1),
+            (TEST_BOOLEAN, 1908, 2),
+            (TEST_NUMERIC, 3177, 3),
+            (TEST_RATIO, 20096, 3),
+        ]
     )
-    def test_get_multiple_sample_size_fixed_output(self, metric_type, metadata, test_sample_size):
-        test_metric = {"metric_type": metric_type, "metric_metadata": metadata}
-
+    def test_get_multiple_sample_size_fixed_output(self, test_metric, test_sample_size, seed):
         calculator = SampleSizeCalculator()
         calculator.register_metrics([test_metric] * 2)
 
-        for s in range(1, 6):
-            np.random.seed(s)
-            sample_size = calculator.get_sample_size()
-            self.assertEqual(sample_size, test_sample_size)
+        np.random.seed(seed)
+        sample_size = calculator.get_sample_size()
+        self.assertEqual(sample_size, test_sample_size)
 
     @parameterized.expand([(10,), (100,), (1000,)])
     def test_expected_average_power_satisfies_inequality(self, test_size):
