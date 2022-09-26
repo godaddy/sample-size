@@ -1,3 +1,11 @@
+v2.0.2 - 2022-09-21
+----------------------
+
+Fix:
+
+* [#48](https://github.com/godaddy/sample-size/pull/48) - Add random state parameters to have all simulation functions generating fixed output given a fixed input
+
+
 v2.0.1 - 2022-08-15
 ----------------------
 

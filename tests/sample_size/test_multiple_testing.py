@@ -12,6 +12,20 @@ from sample_size.sample_size_calculator import DEFAULT_ALPHA
 from sample_size.sample_size_calculator import DEFAULT_POWER
 from sample_size.sample_size_calculator import SampleSizeCalculator
 
+TEST_BOOLEAN = {"metric_type": "boolean", "metric_metadata": {"probability": 0.05, "mde": 0.02}}
+TEST_NUMERIC = {"metric_type": "numeric", "metric_metadata": {"variance": 5000, "mde": 5}}
+TEST_RATIO = {
+    "metric_type": "ratio",
+    "metric_metadata": {
+        "numerator_mean": 500,
+        "numerator_variance": 500000,
+        "denominator_mean": 20,
+        "denominator_variance": 2000,
+        "covariance": 25000,
+        "mde": 1,
+    },
+}
+
 
 class MultipleTestingTestCase(unittest.TestCase):
     def setUp(self):
@@ -95,6 +109,23 @@ class MultipleTestingTestCase(unittest.TestCase):
             str(context.exception),
             f"Couldn't find a sample size that satisfies the power you requested: {DEFAULT_POWER}",
         )
+
+    @parameterized.expand(
+        [
+            (TEST_BOOLEAN, 1908, 1),
+            (TEST_NUMERIC, 3455, 2),
+            (TEST_RATIO, 21593, 3),
+            (TEST_BOOLEAN, 2051, 7),
+            (TEST_NUMERIC, 3215, 5),
+            (TEST_RATIO, 20096, 6),
+        ]
+    )
+    def test_get_multiple_sample_size_fixed_output(self, test_metric, test_sample_size, seed):
+        with patch("sample_size.metrics.RANDOM_SEED", seed):
+            calculator = SampleSizeCalculator()
+            calculator.register_metrics([test_metric] * 2)
+            sample_size = calculator.get_sample_size()
+            self.assertEqual(sample_size, test_sample_size)
 
     @parameterized.expand([(10,), (100,), (1000,)])
     def test_expected_average_power_satisfies_inequality(self, test_size):
