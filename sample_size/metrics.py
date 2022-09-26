@@ -8,7 +8,7 @@ from scipy import stats
 from statsmodels.stats.power import NormalIndPower
 from statsmodels.stats.power import TTestIndPower
 
-RANDOM_SEED = 1
+RANDOM_SEED = np.random.RandomState(1)
 
 
 class BaseMetric:

@@ -112,12 +112,12 @@ class MultipleTestingTestCase(unittest.TestCase):
 
     @parameterized.expand(
         [
-            (TEST_BOOLEAN, 1908, 1),
-            (TEST_NUMERIC, 3455, 2),
-            (TEST_RATIO, 21593, 3),
-            (TEST_BOOLEAN, 2051, 7),
-            (TEST_NUMERIC, 3215, 5),
-            (TEST_RATIO, 20096, 6),
+            (TEST_BOOLEAN, 2002, np.random.RandomState(1)),
+            (TEST_NUMERIC, 3455, np.random.RandomState(2)),
+            (TEST_RATIO, 22115, np.random.RandomState(3)),
+            (TEST_BOOLEAN, 2051, np.random.RandomState(7)),
+            (TEST_NUMERIC, 3433, np.random.RandomState(8)),
+            (TEST_RATIO, 20583, np.random.RandomState(6)),
         ]
     )
     def test_get_multiple_sample_size_fixed_output(self, test_metric, test_sample_size, seed):
