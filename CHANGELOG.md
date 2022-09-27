@@ -1,3 +1,9 @@
+v2.0.3 - 2022-09-27
+----------------------
+
+Change:
+* [#52](https://github.com/godaddy/sample-size/pull/52) - optimize the use of random state parameter in order to resolve the long response time issue
+
 v2.0.2 - 2022-09-21
 ----------------------
 
