@@ -151,9 +151,9 @@ class RatioMetric(BaseMetric):
     @property
     def variance(self) -> float:
         variance = (
-            self.numerator_variance / self.denominator_mean ** 2
-            + self.denominator_variance * self.numerator_mean ** 2 / self.denominator_mean ** 4
-            - 2 * self.covariance * self.numerator_mean / self.denominator_mean ** 3
+            self.numerator_variance / self.denominator_mean**2
+            + self.denominator_variance * self.numerator_mean**2 / self.denominator_mean**4
+            - 2 * self.covariance * self.numerator_mean / self.denominator_mean**3
         )
 
         return variance
