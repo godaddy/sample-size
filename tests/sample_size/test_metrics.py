@@ -16,6 +16,8 @@ from sample_size.metrics import BooleanMetric
 from sample_size.metrics import NumericMetric
 from sample_size.metrics import RatioMetric
 
+ALTERNATIVE = "two-sided"
+
 
 class DummyMetric(BaseMetric):
     def power_analysis_instance(self):
@@ -54,7 +56,7 @@ class BaseMetricTestCase(unittest.TestCase):
         mock_alt_p_values.side_effect = lambda size, __: np.array([alt_p_value] * size)
         mock_stats.uniform.rvs.side_effect = lambda _, __, size, random_state: np.array([null_p_value] * size)
 
-        metric = DummyMetric(mde)
+        metric = DummyMetric(mde, ALTERNATIVE)
 
         p_values = metric.generate_p_values(true_alt, sample_size)
 
@@ -66,6 +68,7 @@ class BaseMetricTestCase(unittest.TestCase):
 
 class BooleanMetricTestCase(unittest.TestCase):
     def setUp(self):
+        self.ALTERNATIVE = "two-sided"
         self.DEFAULT_MDE = 0.01
         self.DEFAULT_PROBABILITY = 0.05
         self.DEFAULT_MOCK_VARIANCE = 99
@@ -75,7 +78,7 @@ class BooleanMetricTestCase(unittest.TestCase):
     def test_boolean_metric_constructor_sets_params(self, mock_variance, mock_check_probability):
         mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_MOCK_VARIANCE)
         mock_check_probability.return_value = self.DEFAULT_PROBABILITY
-        boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE)
+        boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, ALTERNATIVE)
 
         mock_check_probability.assert_called_once_with(self.DEFAULT_PROBABILITY)
         self.assertEqual(boolean.probability, self.DEFAULT_PROBABILITY)
@@ -84,7 +87,7 @@ class BooleanMetricTestCase(unittest.TestCase):
         self.assertIsInstance(boolean.power_analysis_instance, NormalIndPower)
 
     def test_boolean_metric_variance(self):
-        boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE)
+        boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, ALTERNATIVE)
 
         self.assertEqual(boolean.variance, 0.0475)
 
@@ -125,7 +128,7 @@ class BooleanMetricTestCase(unittest.TestCase):
         p_value_generator.return_value = p_values
         mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_MOCK_VARIANCE)
 
-        metric = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE)
+        metric = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, ALTERNATIVE)
         p = metric._generate_alt_p_values(size, sample_size)
 
         effect_sample_size = self.DEFAULT_MDE / np.sqrt(2 * self.DEFAULT_MOCK_VARIANCE / sample_size)
@@ -140,7 +143,7 @@ class NumericMetricTestCase(unittest.TestCase):
         self.DEFAULT_VARIANCE = 5000
 
     def test_numeric_metric_constructor_sets_params(self):
-        numeric = NumericMetric(self.DEFAULT_VARIANCE, self.DEFAULT_MDE)
+        numeric = NumericMetric(self.DEFAULT_VARIANCE, self.DEFAULT_MDE, ALTERNATIVE)
 
         self.assertEqual(numeric.variance, self.DEFAULT_VARIANCE)
         self.assertEqual(numeric.mde, self.DEFAULT_MDE)
@@ -157,7 +160,7 @@ class NumericMetricTestCase(unittest.TestCase):
         p_value_generator.return_value = p_values
         mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_VARIANCE)
 
-        metric = NumericMetric(self.DEFAULT_VARIANCE, self.DEFAULT_MDE)
+        metric = NumericMetric(self.DEFAULT_VARIANCE, self.DEFAULT_MDE, ALTERNATIVE)
         p = metric._generate_alt_p_values(size, sample_size)
 
         effect_sample_size = np.sqrt(sample_size / 2 / self.DEFAULT_VARIANCE) * self.DEFAULT_MDE
@@ -187,6 +190,7 @@ class RatioMetricTestCase(unittest.TestCase):
             self.DEFAULT_DENOMINATOR_VARIANCE,
             self.DEFAULT_COVARIANCE,
             self.DEFAULT_MDE,
+            ALTERNATIVE,
         )
 
         self.assertEqual(ratio.numerator_mean, self.DEFAULT_NUMERATOR_MEAN)
@@ -206,6 +210,7 @@ class RatioMetricTestCase(unittest.TestCase):
             self.DEFAULT_DENOMINATOR_VARIANCE,
             self.DEFAULT_COVARIANCE,
             self.DEFAULT_MDE,
+            ALTERNATIVE,
         )
 
         self.assertEqual(ratio.variance, 5.0)
@@ -227,6 +232,7 @@ class RatioMetricTestCase(unittest.TestCase):
             self.DEFAULT_DENOMINATOR_VARIANCE,
             self.DEFAULT_COVARIANCE,
             self.DEFAULT_MDE,
+            ALTERNATIVE,
         )
 
         p = metric._generate_alt_p_values(size, sample_size)

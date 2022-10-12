@@ -135,6 +135,25 @@ class UtilsTestCase(unittest.TestCase):
         )
         mock_get_float.assert_called_once_with(test_mde, "minimum detectable effect")
 
+    @parameterized.expand([("Larger", "larger"), ("SMALLER", "smaller"), ("two-sided", "two-sided"), ("", "two-sided")])
+    @patch("sample_size.scripts.input_utils.input")
+    def test_get_alternative(self, test_alternative, expected_alternative, mock_input):
+        mock_input.return_value = test_alternative
+        alternative = input_utils.get_alternative()
+        self.assertEqual(alternative, expected_alternative)
+        mock_input.assert_called_once()
+
+    @patch("sample_size.scripts.input_utils.input")
+    def test_get_alternative_error(self, mock_input):
+        mock_input.return_value = "two-side"
+        with self.assertRaises(Exception) as context:
+            input_utils.get_alternative()
+        self.assertEqual(
+            context.exception.args[0],
+            "Error: Unexpected alternative type. Please enter two-sided, larger, or smaller.",
+        )
+        mock_input.assert_called_once()
+
     @patch("sample_size.scripts.input_utils.input")
     def test_get_metric_type_boolean(self, mock_input):
         mock_input.return_value = " Boolean "
@@ -312,8 +331,8 @@ class UtilsTestCase(unittest.TestCase):
 
     @parameterized.expand(
         [
-            ("boolean", {"probability": 0.05, "mde": 0.02}),
-            ("numeric", {"variance": 500, "mde": 5}),
+            ("boolean", {"probability": 0.05}),
+            ("numeric", {"variance": 500}),
             (
                 "ratio",
                 {
@@ -322,21 +341,29 @@ class UtilsTestCase(unittest.TestCase):
                     "denominator_mean": 200,
                     "denominator_variance": 2000,
                     "covariance": 5000,
-                    "mde": 10,
                 },
             ),
         ]
     )
+    @patch("sample_size.scripts.input_utils.get_alternative")
     @patch("sample_size.scripts.input_utils.get_mde")
     @patch("sample_size.scripts.input_utils.get_metric_parameters")
     @patch("sample_size.scripts.input_utils.get_metric_type")
     def test_get_metric(
-        self, test_metric_type, test_metric_metadata, mock_get_metric_type, mock_get_metric_parameters, mock_get_mde
+        self,
+        test_metric_type,
+        test_metric_metadata,
+        mock_get_metric_type,
+        mock_get_metric_parameters,
+        mock_get_mde,
+        mock_alternative,
     ):
         test_mde = 0.05
+        test_alternative = "two-sided"
         mock_get_metric_type.return_value = test_metric_type
         mock_get_metric_parameters.return_value = test_metric_metadata
         mock_get_mde.return_value = test_mde
+        mock_alternative.return_value = test_alternative
 
         metric = input_utils._get_metric()
         self.assertEqual(

@@ -47,7 +47,7 @@ class SampleSizeCalculator(MultipleTestingMixin):
                 alpha=alpha,
                 power=self.power,
                 ratio=1,
-                alternative="two-sided",
+                alternative=metric.alternative,
             )
         )
         return sample_size

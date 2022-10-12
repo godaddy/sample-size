@@ -1,3 +1,4 @@
+from typing import Any
 from typing import Collection
 from typing import Dict
 from typing import List
@@ -61,6 +62,24 @@ def get_mde(metric_type: str) -> float:
     return mde
 
 
+def get_alternative() -> str:
+    alternative = (
+        input(
+            "Enter the alternative hypothesis type (two-sided, larger, smaller) or press Enter to use "
+            "default two-sided test: "
+        )
+        .strip()
+        .lower()
+    )
+    if alternative in ["two-sided", "larger", "smaller"]:
+        return alternative
+    elif alternative == "":
+        print("Using default(two-sided test)...")
+        return "two-sided"
+    else:
+        raise ValueError("Error: Unexpected alternative type. Please enter two-sided, larger, or smaller.")
+
+
 def get_metric_type() -> str:
     metric_type = input("Enter metric type (Boolean, Numeric, Ratio): ").strip().lower()
     if metric_type in ["boolean", "numeric", "ratio"]:
@@ -69,7 +88,7 @@ def get_metric_type() -> str:
         raise ValueError("Error: Unexpected metric type. Please enter Boolean, Numeric, or Ratio.")
 
 
-def get_metric_parameters(parameter_definitions: Dict[str, str]) -> Dict[str, float]:
+def get_metric_parameters(parameter_definitions: Dict[str, str]) -> Dict[str, Any]:
     parameters = {}
 
     for parameter_name, parameter_definition in parameter_definitions.items():
@@ -113,6 +132,7 @@ def _get_metric() -> Dict[str, Collection[str]]:
     metric_type = get_metric_type()
     metric_metadata = get_metric_parameters(METRIC_PARAMETERS[metric_type])
     metric_metadata["mde"] = get_mde(metric_type)
+    metric_metadata["alternative"] = get_alternative()
     return {"metric_type": metric_type, "metric_metadata": metric_metadata}
 
 
