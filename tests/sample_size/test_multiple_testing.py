@@ -17,7 +17,7 @@ TEST_BOOLEAN = {
     "metric_type": "boolean",
     "metric_metadata": {"probability": 0.05, "mde": 0.02, "alternative": ALTERNATIVE},
 }
-TEST_NUMERIC = {"metric_type": "numeric", "metric_metadata": {"variance": 5000, "mde": 5, "alternative": ALTERNATIVE}}
+TEST_NUMERIC = {"metric_type": "numeric", "metric_metadata": {"variance": 5000, "mde": 5, "alternative": "larger"}}
 TEST_RATIO = {
     "metric_type": "ratio",
     "metric_metadata": {
@@ -26,8 +26,8 @@ TEST_RATIO = {
         "denominator_mean": 20,
         "denominator_variance": 2000,
         "covariance": 25000,
-        "mde": 1,
-        "alternative": ALTERNATIVE,
+        "mde": -1,
+        "alternative": "smaller",
     },
 }
 
@@ -122,23 +122,23 @@ class MultipleTestingTestCase(unittest.TestCase):
 
     @parameterized.expand(
         [
-            (TEST_BOOLEAN, 2002, 1),
-            (TEST_NUMERIC, 3455, 2),
-            (TEST_RATIO, 22115, 3),
+            (TEST_BOOLEAN, 1885, 1),
+            (TEST_NUMERIC, 2786, 2),
+            (TEST_RATIO, 17414, 4),
             (TEST_BOOLEAN, 2051, 7),
-            (TEST_NUMERIC, 3433, 8),
-            (TEST_RATIO, 20583, 6),
+            (TEST_NUMERIC, 2703, 8),
+            (TEST_RATIO, 16901, 6),
         ]
     )
     def test_get_multiple_sample_size_fixed_output(self, test_metric, test_sample_size, seed):
-        with patch("sample_size.metrics.RANDOM_STATE", np.random.RandomState(seed)):
+        with patch("sample_size.metrics.RANDOM_STATE", seed):
             calculator = SampleSizeCalculator()
             calculator.register_metrics([test_metric] * 2)
             sample_size = calculator.get_sample_size()
             self.assertEqual(sample_size, test_sample_size)
 
     @parameterized.expand([(10,), (100,), (1000,)])
-    def test_expected_average_power_satisfies_inequality(self, test_size):
+    def test_expected_average_power_satisfies_inequality_inflated(self, test_size):
         calculator = SampleSizeCalculator()
         calculator.register_metrics([self.test_metric, self.test_metric, self.test_metric])
         expected_power = calculator._expected_average_power(test_size)

@@ -132,7 +132,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         test_sample_size = 2000
         mock_get_multiple_sample_size.return_value = test_sample_size
         mock_get_single_sample_size.return_value = test_sample_size
-        test_metric_metadata = {"probability": 0.05, "mde": 0.02, "alternative": "two-sided"}
+        test_metric_metadata = {"probability": 0.05, "mde": 0.02, "alternative": ALTERNATIVE}
         calculator = SampleSizeCalculator()
         calculator.register_metrics(
             [

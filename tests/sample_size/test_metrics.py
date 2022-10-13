@@ -68,7 +68,7 @@ class BaseMetricTestCase(unittest.TestCase):
 
 class BooleanMetricTestCase(unittest.TestCase):
     def setUp(self):
-        self.ALTERNATIVE = "two-sided"
+        self.ALTERNATIVE = ALTERNATIVE
         self.DEFAULT_MDE = 0.01
         self.DEFAULT_PROBABILITY = 0.05
         self.DEFAULT_MOCK_VARIANCE = 99
@@ -78,7 +78,7 @@ class BooleanMetricTestCase(unittest.TestCase):
     def test_boolean_metric_constructor_sets_params(self, mock_variance, mock_check_probability):
         mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_MOCK_VARIANCE)
         mock_check_probability.return_value = self.DEFAULT_PROBABILITY
-        boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, ALTERNATIVE)
+        boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, self.ALTERNATIVE)
 
         mock_check_probability.assert_called_once_with(self.DEFAULT_PROBABILITY)
         self.assertEqual(boolean.probability, self.DEFAULT_PROBABILITY)
@@ -87,7 +87,7 @@ class BooleanMetricTestCase(unittest.TestCase):
         self.assertIsInstance(boolean.power_analysis_instance, NormalIndPower)
 
     def test_boolean_metric_variance(self):
-        boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, ALTERNATIVE)
+        boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, self.ALTERNATIVE)
 
         self.assertEqual(boolean.variance, 0.0475)
 
@@ -118,23 +118,24 @@ class BooleanMetricTestCase(unittest.TestCase):
             "Error: Please provide a float between 0 and 1 for probability.",
         )
 
-    @parameterized.expand(product((1, 2, 10), (2, 10)))
+    @parameterized.expand(product((1, 2, 10), (2, 10), ("two-sided", "smaller", "larger")))
     @patch("sample_size.metrics.BooleanMetric.variance")
     @patch("scipy.stats.norm")
-    def test_boolean__generate_alt_p_values(self, size, sample_size, mock_norm, mock_variance):
+    def test_boolean__generate_alt_p_values(self, size, sample_size, alternative, mock_norm, mock_variance):
         p_value_generator = mock_norm.sf
         p_values = MagicMock()
         mock_norm.rvs.return_value = -ord("🌮")
         p_value_generator.return_value = p_values
         mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_MOCK_VARIANCE)
 
-        metric = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, ALTERNATIVE)
+        metric = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, alternative)
         p = metric._generate_alt_p_values(size, sample_size)
 
         effect_sample_size = self.DEFAULT_MDE / np.sqrt(2 * self.DEFAULT_MOCK_VARIANCE / sample_size)
         mock_norm.rvs.assert_called_once_with(loc=effect_sample_size, size=size, random_state=RANDOM_STATE)
         mock_norm.sf.assert_called_once_with(np.abs(mock_norm.rvs.return_value))
-        assert_array_equal(p, p_values)
+        expected_p_values = p_values if alternative != "two-sided" else 2 * p_values
+        assert_array_equal(p, expected_p_values)
 
 
 class NumericMetricTestCase(unittest.TestCase):
@@ -149,25 +150,26 @@ class NumericMetricTestCase(unittest.TestCase):
         self.assertEqual(numeric.mde, self.DEFAULT_MDE)
         self.assertIsInstance(numeric.power_analysis_instance, TTestIndPower)
 
-    @parameterized.expand(product((1, 2, 10), (2, 10)))
+    @parameterized.expand(product((1, 2, 10), (2, 10), ("two-sided", "smaller", "larger")))
     @patch("sample_size.metrics.NumericMetric.variance")
     @patch("scipy.stats.nct")
     @patch("scipy.stats.t")
-    def test_numeric__generate_alt_p_values(self, size, sample_size, mock_t, mock_nct, mock_variance):
+    def test_numeric__generate_alt_p_values(self, size, sample_size, alternative, mock_t, mock_nct, mock_variance):
         p_value_generator = mock_t.sf
         p_values = MagicMock()
         mock_nct.rvs.return_value = -ord("🌮")
         p_value_generator.return_value = p_values
         mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_VARIANCE)
 
-        metric = NumericMetric(self.DEFAULT_VARIANCE, self.DEFAULT_MDE, ALTERNATIVE)
+        metric = NumericMetric(self.DEFAULT_VARIANCE, self.DEFAULT_MDE, alternative)
         p = metric._generate_alt_p_values(size, sample_size)
 
         effect_sample_size = np.sqrt(sample_size / 2 / self.DEFAULT_VARIANCE) * self.DEFAULT_MDE
         df = 2 * (sample_size - 1)
         mock_nct.rvs.assert_called_once_with(nc=effect_sample_size, df=df, size=size, random_state=RANDOM_STATE)
         mock_t.sf.assert_called_once_with(np.abs(mock_nct.rvs.return_value), df)
-        assert_array_equal(p, p_values)
+        expected_p_values = p_values if alternative != "two-sided" else 2 * p_values
+        assert_array_equal(p, expected_p_values)
 
 
 class RatioMetricTestCase(unittest.TestCase):
@@ -215,10 +217,10 @@ class RatioMetricTestCase(unittest.TestCase):
 
         self.assertEqual(ratio.variance, 5.0)
 
-    @parameterized.expand(product((1, 2, 10), (2, 10)))
+    @parameterized.expand(product((1, 2, 10), (2, 10), ("two-sided", "smaller", "larger")))
     @patch("sample_size.metrics.RatioMetric.variance")
     @patch("scipy.stats.norm")
-    def test_ratio__generate_alt_p_values(self, size, sample_size, mock_norm, mock_variance):
+    def test_ratio__generate_alt_p_values(self, size, sample_size, alternative, mock_norm, mock_variance):
         p_value_generator = mock_norm.sf
         p_values = MagicMock()
         mock_norm.rvs.return_value = -ord("🌮")
@@ -232,7 +234,7 @@ class RatioMetricTestCase(unittest.TestCase):
             self.DEFAULT_DENOMINATOR_VARIANCE,
             self.DEFAULT_COVARIANCE,
             self.DEFAULT_MDE,
-            ALTERNATIVE,
+            alternative,
         )
 
         p = metric._generate_alt_p_values(size, sample_size)
@@ -240,4 +242,5 @@ class RatioMetricTestCase(unittest.TestCase):
         effect_sample_size = self.DEFAULT_MDE / np.sqrt(2 * self.DEFAULT_VARIANCE / sample_size)
         mock_norm.rvs.assert_called_once_with(loc=effect_sample_size, size=size, random_state=RANDOM_STATE)
         mock_norm.sf.assert_called_once_with(np.abs(mock_norm.rvs.return_value))
-        assert_array_equal(p, p_values)
+        expected_p_values = p_values if alternative != "two-sided" else 2 * p_values
+        assert_array_equal(p, expected_p_values)
