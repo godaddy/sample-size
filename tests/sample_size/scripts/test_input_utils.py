@@ -331,8 +331,8 @@ class UtilsTestCase(unittest.TestCase):
 
     @parameterized.expand(
         [
-            ("boolean", {"probability": 0.05}),
-            ("numeric", {"variance": 500}),
+            ("boolean", {"probability": 0.05}, 0.05, "one-sided", "larger"),
+            ("numeric", {"variance": 500}, -0.5, "one-sided", "smaller"),
             (
                 "ratio",
                 {
@@ -342,6 +342,9 @@ class UtilsTestCase(unittest.TestCase):
                     "denominator_variance": 2000,
                     "covariance": 5000,
                 },
+                1,
+                "two-sided",
+                "two-sided",
             ),
         ]
     )
@@ -353,19 +356,21 @@ class UtilsTestCase(unittest.TestCase):
         self,
         test_metric_type,
         test_metric_metadata,
+        test_mde,
+        test_alternative,
+        expected_alternative,
         mock_get_metric_type,
         mock_get_metric_parameters,
         mock_get_mde,
         mock_alternative,
     ):
-        test_mde = 0.05
-        test_alternative = "two-sided"
         mock_get_metric_type.return_value = test_metric_type
         mock_get_metric_parameters.return_value = test_metric_metadata
         mock_get_mde.return_value = test_mde
         mock_alternative.return_value = test_alternative
 
         metric = input_utils._get_metric()
+        test_metric_metadata["alternative"] = expected_alternative
         self.assertEqual(
             metric,
             {"metric_type": test_metric_type, "metric_metadata": test_metric_metadata},
@@ -373,6 +378,7 @@ class UtilsTestCase(unittest.TestCase):
         mock_get_metric_type.assert_called_once()
         mock_get_metric_parameters.assert_called_once_with(input_utils.METRIC_PARAMETERS[test_metric_type])
         mock_get_mde.assert_called_once_with(test_metric_type)
+        mock_alternative.assert_called_once()
 
     @patch("sample_size.scripts.input_utils.register_another_metric")
     @patch("sample_size.scripts.input_utils._get_metric")

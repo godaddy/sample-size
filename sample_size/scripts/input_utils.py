@@ -133,7 +133,7 @@ def _get_metric() -> Dict[str, Collection[str]]:
     metric_metadata = get_metric_parameters(METRIC_PARAMETERS[metric_type])
     metric_metadata["mde"] = get_mde(metric_type)
     if get_alternative() == "two-sided":
-        metric_metadata["alternative"] = get_alternative()
+        metric_metadata["alternative"] = "two-sided"
     else:
         metric_metadata["alternative"] = "larger" if metric_metadata["mde"] > 0 else "smaller"
     return {"metric_type": metric_type, "metric_metadata": metric_metadata}
