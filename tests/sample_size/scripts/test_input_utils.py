@@ -135,7 +135,7 @@ class UtilsTestCase(unittest.TestCase):
         )
         mock_get_float.assert_called_once_with(test_mde, "minimum detectable effect")
 
-    @parameterized.expand([("Larger", "larger"), ("SMALLER", "smaller"), ("two-sided", "two-sided"), ("", "two-sided")])
+    @parameterized.expand([("One-Sided", "one-sided"), ("two-sided", "two-sided"), ("", "two-sided")])
     @patch("sample_size.scripts.input_utils.input")
     def test_get_alternative(self, test_alternative, expected_alternative, mock_input):
         mock_input.return_value = test_alternative
