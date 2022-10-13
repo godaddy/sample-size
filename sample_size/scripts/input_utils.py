@@ -65,13 +65,13 @@ def get_mde(metric_type: str) -> float:
 def get_alternative() -> str:
     alternative = (
         input(
-            "Enter the alternative hypothesis type (two-sided, larger, smaller) or press Enter to use "
+            "Enter the alternative hypothesis type (two-sided, one-sided) or press Enter to use "
             "default two-sided test: "
         )
         .strip()
         .lower()
     )
-    if alternative in ["two-sided", "larger", "smaller"]:
+    if alternative in ["two-sided", "one-sided"]:
         return alternative
     elif alternative == "":
         print("Using default(two-sided test)...")
@@ -132,7 +132,10 @@ def _get_metric() -> Dict[str, Collection[str]]:
     metric_type = get_metric_type()
     metric_metadata = get_metric_parameters(METRIC_PARAMETERS[metric_type])
     metric_metadata["mde"] = get_mde(metric_type)
-    metric_metadata["alternative"] = get_alternative()
+    if get_alternative() == "two-sided":
+        metric_metadata["alternative"] = "two-sided"
+    else:
+        metric_metadata["alternative"] = "larger" if metric_metadata["mde"] > 0 else "smaller"
     return {"metric_type": metric_type, "metric_metadata": metric_metadata}
 
 
