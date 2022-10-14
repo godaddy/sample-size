@@ -126,15 +126,15 @@ class MultipleTestingTestCase(unittest.TestCase):
         [
             (TEST_BOOLEAN, 2051, 1),
             (TEST_NUMERIC, 2744, 2),
-            (TEST_RATIO, 17941, 4),
-            (TEST_BOOLEAN, 2051, 7),
-            (TEST_NUMERIC, 2744, 8),
-            (TEST_RATIO, 17941, 6),
+            (TEST_RATIO, 17414, 4),
+            (TEST_BOOLEAN, 2002, 11),
+            (TEST_NUMERIC, 2786, 8),
+            (TEST_RATIO, 17740, 6),
         ]
     )
     def test_get_multiple_sample_size_fixed_output(self, test_metric, test_sample_size, seed):
         N = 3
-        with patch("sample_size.sample_size_calculator.RANDOM_STATE", np.random.RandomState(seed)):
+        with patch("sample_size.sample_size_calculator.STATE", np.random.RandomState(seed).get_state()):
             calcs = [SampleSizeCalculator() for _ in range(N)]
             for calc in calcs:
                 calc.register_metrics([test_metric] * 2)
@@ -142,7 +142,7 @@ class MultipleTestingTestCase(unittest.TestCase):
             assert_array_equal(sample_sizes, [test_sample_size] * N)
 
     @parameterized.expand([(10,), (100,), (1000,)])
-    def test_expected_average_power_satisfies_inequality_inflated(self, test_size):
+    def test_expected_average_power_satisfies_inequality(self, test_size):
         calculator = SampleSizeCalculator()
         calculator.register_metrics([self.test_metric, self.test_metric, self.test_metric])
         expected_power = calculator._expected_average_power(test_size, RANDOM_STATE)
