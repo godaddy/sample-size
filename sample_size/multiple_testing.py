@@ -9,8 +9,6 @@ from sample_size.metrics import BaseMetric
 DEFAULT_REPLICATION: int = 400
 DEFAULT_EPSILON: float = 0.01
 DEFAULT_MAX_RECURSION: int = 20
-# RANDOM_STATE = np.random.RandomState(1)
-# state = RANDOM_STATE.get_state()
 
 
 class MultipleTestingMixin:
