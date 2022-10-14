@@ -10,11 +10,11 @@ from parameterized import parameterized
 from statsmodels.stats.power import NormalIndPower
 from statsmodels.stats.power import TTestIndPower
 
-from sample_size.metrics import RANDOM_STATE
 from sample_size.metrics import BaseMetric
 from sample_size.metrics import BooleanMetric
 from sample_size.metrics import NumericMetric
 from sample_size.metrics import RatioMetric
+from sample_size.sample_size_calculator import RANDOM_STATE
 
 ALTERNATIVE = "two-sided"
 
@@ -26,7 +26,7 @@ class DummyMetric(BaseMetric):
     def variance(self):
         return MagicMock()
 
-    def _generate_alt_p_values(self, size, sample_size):
+    def _generate_alt_p_values(self, size, sample_size, RANDOM_STATE):
         return MagicMock()
 
 
@@ -53,12 +53,12 @@ class BaseMetricTestCase(unittest.TestCase):
         null_p_value = 1
         alt_p_value = 0
 
-        mock_alt_p_values.side_effect = lambda size, __: np.array([alt_p_value] * size)
+        mock_alt_p_values.side_effect = lambda size, __, random_state: np.array([alt_p_value] * size)
         mock_stats.uniform.rvs.side_effect = lambda _, __, size, random_state: np.array([null_p_value] * size)
 
         metric = DummyMetric(mde, ALTERNATIVE)
 
-        p_values = metric.generate_p_values(true_alt, sample_size)
+        p_values = metric.generate_p_values(true_alt, sample_size, RANDOM_STATE)
 
         mock_alt_p_values.assert_called_once()
         mock_stats.uniform.rvs.assert_called_once()
@@ -129,7 +129,7 @@ class BooleanMetricTestCase(unittest.TestCase):
         mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_MOCK_VARIANCE)
 
         metric = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, alternative)
-        p = metric._generate_alt_p_values(size, sample_size)
+        p = metric._generate_alt_p_values(size, sample_size, RANDOM_STATE)
 
         effect_sample_size = self.DEFAULT_MDE / np.sqrt(2 * self.DEFAULT_MOCK_VARIANCE / sample_size)
         mock_norm.rvs.assert_called_once_with(loc=effect_sample_size, size=size, random_state=RANDOM_STATE)
@@ -162,7 +162,7 @@ class NumericMetricTestCase(unittest.TestCase):
         mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_VARIANCE)
 
         metric = NumericMetric(self.DEFAULT_VARIANCE, self.DEFAULT_MDE, alternative)
-        p = metric._generate_alt_p_values(size, sample_size)
+        p = metric._generate_alt_p_values(size, sample_size, RANDOM_STATE)
 
         effect_sample_size = np.sqrt(sample_size / 2 / self.DEFAULT_VARIANCE) * self.DEFAULT_MDE
         df = 2 * (sample_size - 1)
@@ -237,7 +237,7 @@ class RatioMetricTestCase(unittest.TestCase):
             alternative,
         )
 
-        p = metric._generate_alt_p_values(size, sample_size)
+        p = metric._generate_alt_p_values(size, sample_size, RANDOM_STATE)
 
         effect_sample_size = self.DEFAULT_MDE / np.sqrt(2 * self.DEFAULT_VARIANCE / sample_size)
         mock_norm.rvs.assert_called_once_with(loc=effect_sample_size, size=size, random_state=RANDOM_STATE)

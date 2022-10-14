@@ -4,12 +4,13 @@ import numpy as np
 import numpy.typing as npt
 from statsmodels.stats.multitest import multipletests
 
-from sample_size.metrics import RANDOM_STATE
 from sample_size.metrics import BaseMetric
 
 DEFAULT_REPLICATION: int = 400
 DEFAULT_EPSILON: float = 0.01
 DEFAULT_MAX_RECURSION: int = 20
+# RANDOM_STATE = np.random.RandomState(1)
+# state = RANDOM_STATE.get_state()
 
 
 class MultipleTestingMixin:
@@ -33,6 +34,7 @@ class MultipleTestingMixin:
         self,
         lower: float,
         upper: float,
+        random_state: np.random.RandomState,
         depth: int = 0,
         replication: int = DEFAULT_REPLICATION,
         epsilon: float = DEFAULT_EPSILON,
@@ -60,18 +62,20 @@ class MultipleTestingMixin:
             raise RecursionError(f"Couldn't find a sample size that satisfies the power you requested: {self.power}")
 
         candidate = int(np.sqrt(lower * upper))
-        expected_power = self._expected_average_power(candidate, replication)
+        expected_power = self._expected_average_power(candidate, random_state, replication)
         if np.isclose(self.power, expected_power, atol=epsilon):
             return candidate
         elif lower == upper:
             raise RecursionError(f"Couldn't find a sample size that satisfies the power you requested: {self.power}")
 
         if expected_power > self.power:
-            return self.get_multiple_sample_size(lower, candidate, depth + 1)
+            return self.get_multiple_sample_size(lower, candidate, random_state, depth + 1)
         else:
-            return self.get_multiple_sample_size(candidate, upper, depth + 1)
+            return self.get_multiple_sample_size(candidate, upper, random_state, depth + 1)
 
-    def _expected_average_power(self, sample_size: int, replication: int = DEFAULT_REPLICATION) -> float:
+    def _expected_average_power(
+        self, sample_size: int, random_state: np.random.RandomState, replication: int = DEFAULT_REPLICATION
+    ) -> float:
         """
         This method calculates expected average power of multiple testings. For each possible number of true null
         hypothesis, we simulate each metric/treatment variant's test statistics and calculate their p-values,
@@ -94,10 +98,10 @@ class MultipleTestingMixin:
             return rejected
 
         for num_true_alt in range(1, len(metrics) + 1):
-            true_alt = np.array([RANDOM_STATE.permutation(len(metrics)) < num_true_alt for _ in range(replication)]).T
+            true_alt = np.array([random_state.permutation(len(metrics)) < num_true_alt for _ in range(replication)]).T
             p_values = []
             for i, m in enumerate(metrics):
-                p_values.append(m.generate_p_values(true_alt[i], sample_size))
+                p_values.append(m.generate_p_values(true_alt[i], sample_size, random_state))
 
             rejected = np.apply_along_axis(fdr_bh, 0, np.array(p_values))  # type: ignore[no-untyped-call]
 

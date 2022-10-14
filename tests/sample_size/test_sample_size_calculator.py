@@ -10,6 +10,7 @@ from sample_size.metrics import RatioMetric
 from sample_size.sample_size_calculator import DEFAULT_ALPHA
 from sample_size.sample_size_calculator import DEFAULT_POWER
 from sample_size.sample_size_calculator import DEFAULT_VARIANTS
+from sample_size.sample_size_calculator import RANDOM_STATE
 from sample_size.sample_size_calculator import SampleSizeCalculator
 from tests.sample_size.test_metrics import ALTERNATIVE
 
@@ -153,7 +154,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
                 call(calculator.metrics[1], calculator.alpha / 2),
             ]
         )
-        mock_get_multiple_sample_size.assert_called_once_with(test_sample_size, test_sample_size)
+        mock_get_multiple_sample_size.assert_called_once_with(test_sample_size, test_sample_size, RANDOM_STATE)
 
     # TODO: parameterize register metric functions
     def test_register_metric_boolean(self):
