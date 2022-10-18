@@ -19,8 +19,6 @@ from sample_size.sample_size_calculator import RANDOM_STATE
 ALTERNATIVE = "two-sided"
 TEST_ALTERNATIVES = ("two-sided", "smaller", "larger")
 
-ALTERNATIVE = "two-sided"
-
 
 class DummyMetric(BaseMetric):
     def power_analysis_instance(self):
@@ -240,7 +238,7 @@ class RatioMetricTestCase(unittest.TestCase):
             self.DEFAULT_DENOMINATOR_VARIANCE,
             self.DEFAULT_COVARIANCE,
             self.DEFAULT_MDE,
-            self.DEFAULT_ALTERNATIVE
+            self.DEFAULT_ALTERNATIVE,
         )
 
         p = metric._generate_alt_p_values(size, sample_size, RANDOM_STATE)
