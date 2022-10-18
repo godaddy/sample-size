@@ -11,9 +11,13 @@ from sample_size.multiple_testing import DEFAULT_REPLICATION
 from sample_size.sample_size_calculator import DEFAULT_ALPHA
 from sample_size.sample_size_calculator import DEFAULT_POWER
 from sample_size.sample_size_calculator import SampleSizeCalculator
+from tests.sample_size.test_metrics import ALTERNATIVE
 
-TEST_BOOLEAN = {"metric_type": "boolean", "metric_metadata": {"probability": 0.05, "mde": 0.02}}
-TEST_NUMERIC = {"metric_type": "numeric", "metric_metadata": {"variance": 5000, "mde": 5}}
+TEST_BOOLEAN = {
+    "metric_type": "boolean",
+    "metric_metadata": {"probability": 0.05, "mde": 0.02, "alternative": ALTERNATIVE},
+}
+TEST_NUMERIC = {"metric_type": "numeric", "metric_metadata": {"variance": 5000, "mde": 5, "alternative": ALTERNATIVE}}
 TEST_RATIO = {
     "metric_type": "ratio",
     "metric_metadata": {
@@ -23,6 +27,7 @@ TEST_RATIO = {
         "denominator_variance": 2000,
         "covariance": 25000,
         "mde": 1,
+        "alternative": ALTERNATIVE,
     },
 }
 
@@ -34,7 +39,12 @@ class MultipleTestingTestCase(unittest.TestCase):
         self.test_metric_type = "boolean"
         self.test_probability = 0.05
         self.test_mde = 0.02
-        self.test_metric_metadata = {"probability": self.test_probability, "mde": self.test_mde}
+        self.test_alternative = ALTERNATIVE
+        self.test_metric_metadata = {
+            "probability": self.test_probability,
+            "mde": self.test_mde,
+            "alternative": self.test_alternative,
+        }
         self.test_metric = {"metric_type": self.test_metric_type, "metric_metadata": self.test_metric_metadata}
 
     @parameterized.expand([(0,), (1,), (DEFAULT_POWER + 3 * DEFAULT_EPSILON,)])

@@ -15,8 +15,9 @@ class BaseMetric:
     __metaclass__ = ABCMeta
     mde: float
 
-    def __init__(self, mde: float):
+    def __init__(self, mde: float, alternative: str):
         self.mde = mde
+        self.alternative = alternative
 
     @property
     @abstractmethod
@@ -72,8 +73,9 @@ class BooleanMetric(BaseMetric):
         self,
         probability: float,
         mde: float,
+        alternative: str,
     ):
-        super(BooleanMetric, self).__init__(mde)
+        super(BooleanMetric, self).__init__(mde, alternative)
         self.probability = self._check_probability(probability)
 
     @property
@@ -105,8 +107,9 @@ class NumericMetric(BaseMetric):
         self,
         variance: float,
         mde: float,
+        alternative: str,
     ):
-        super(NumericMetric, self).__init__(mde)
+        super(NumericMetric, self).__init__(mde, alternative)
         self._variance = self.check_positive(variance, "variance")
 
     @property
@@ -139,8 +142,9 @@ class RatioMetric(BaseMetric):
         denominator_variance: float,
         covariance: float,
         mde: float,
+        alternative: str,
     ):
-        super(RatioMetric, self).__init__(mde)
+        super(RatioMetric, self).__init__(mde, alternative)
         # TODO: add check for Cauchy-Schwarz inequality
         self.numerator_mean = numerator_mean
         self.numerator_variance = self.check_positive(numerator_variance, "numerator variance")
