@@ -341,7 +341,6 @@ class UtilsTestCase(unittest.TestCase):
                     "denominator_mean": 200,
                     "denominator_variance": 2000,
                     "covariance": 5000,
-                    "mde": 10,
                 },
                 1,
                 "two-sided",
