@@ -17,6 +17,7 @@ from sample_size.metrics import RatioMetric
 from sample_size.sample_size_calculator import RANDOM_STATE
 
 ALTERNATIVE = "two-sided"
+TEST_ALTERNATIVES = ("two-sided", "smaller", "larger")
 
 
 class DummyMetric(BaseMetric):
@@ -68,7 +69,7 @@ class BaseMetricTestCase(unittest.TestCase):
 
 class BooleanMetricTestCase(unittest.TestCase):
     def setUp(self):
-        self.ALTERNATIVE = ALTERNATIVE
+        self.DEFAULT_ALTERNATIVE = ALTERNATIVE
         self.DEFAULT_MDE = 0.01
         self.DEFAULT_PROBABILITY = 0.05
         self.DEFAULT_MOCK_VARIANCE = 99
@@ -78,7 +79,7 @@ class BooleanMetricTestCase(unittest.TestCase):
     def test_boolean_metric_constructor_sets_params(self, mock_variance, mock_check_probability):
         mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_MOCK_VARIANCE)
         mock_check_probability.return_value = self.DEFAULT_PROBABILITY
-        boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, self.ALTERNATIVE)
+        boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, self.DEFAULT_ALTERNATIVE)
 
         mock_check_probability.assert_called_once_with(self.DEFAULT_PROBABILITY)
         self.assertEqual(boolean.probability, self.DEFAULT_PROBABILITY)
@@ -87,7 +88,7 @@ class BooleanMetricTestCase(unittest.TestCase):
         self.assertIsInstance(boolean.power_analysis_instance, NormalIndPower)
 
     def test_boolean_metric_variance(self):
-        boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, self.ALTERNATIVE)
+        boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, self.DEFAULT_ALTERNATIVE)
 
         self.assertEqual(boolean.variance, 0.0475)
 
@@ -118,7 +119,7 @@ class BooleanMetricTestCase(unittest.TestCase):
             "Error: Please provide a float between 0 and 1 for probability.",
         )
 
-    @parameterized.expand(product((1, 2, 10), (2, 10), ("two-sided", "smaller", "larger")))
+    @parameterized.expand(product((1, 2, 10), (2, 10), TEST_ALTERNATIVES))
     @patch("sample_size.metrics.BooleanMetric.variance")
     @patch("scipy.stats.norm")
     def test_boolean__generate_alt_p_values(self, size, sample_size, alternative, mock_norm, mock_variance):
@@ -142,15 +143,17 @@ class NumericMetricTestCase(unittest.TestCase):
     def setUp(self):
         self.DEFAULT_MDE = 5
         self.DEFAULT_VARIANCE = 5000
+        self.DEFAULT_ALTERNATIVE = ALTERNATIVE
 
     def test_numeric_metric_constructor_sets_params(self):
-        numeric = NumericMetric(self.DEFAULT_VARIANCE, self.DEFAULT_MDE, ALTERNATIVE)
+        numeric = NumericMetric(self.DEFAULT_VARIANCE, self.DEFAULT_MDE, self.DEFAULT_ALTERNATIVE)
 
         self.assertEqual(numeric.variance, self.DEFAULT_VARIANCE)
         self.assertEqual(numeric.mde, self.DEFAULT_MDE)
+        self.assertEqual(numeric.alternative, self.DEFAULT_ALTERNATIVE)
         self.assertIsInstance(numeric.power_analysis_instance, TTestIndPower)
 
-    @parameterized.expand(product((1, 2, 10), (2, 10), ("two-sided", "smaller", "larger")))
+    @parameterized.expand(product((1, 2, 10), (2, 10), TEST_ALTERNATIVES))
     @patch("sample_size.metrics.NumericMetric.variance")
     @patch("scipy.stats.nct")
     @patch("scipy.stats.t")
@@ -181,6 +184,7 @@ class RatioMetricTestCase(unittest.TestCase):
         self.DEFAULT_DENOMINATOR_VARIANCE = 2000
         self.DEFAULT_COVARIANCE = 5000
         self.DEFAULT_VARIANCE = 99
+        self.DEFAULT_ALTERNATIVE = ALTERNATIVE
 
     @patch("sample_size.metrics.RatioMetric.variance")
     def test_ratio_metric_constructor_sets_params(self, mock_variance):
@@ -192,7 +196,7 @@ class RatioMetricTestCase(unittest.TestCase):
             self.DEFAULT_DENOMINATOR_VARIANCE,
             self.DEFAULT_COVARIANCE,
             self.DEFAULT_MDE,
-            ALTERNATIVE,
+            self.DEFAULT_ALTERNATIVE,
         )
 
         self.assertEqual(ratio.numerator_mean, self.DEFAULT_NUMERATOR_MEAN)
@@ -212,12 +216,12 @@ class RatioMetricTestCase(unittest.TestCase):
             self.DEFAULT_DENOMINATOR_VARIANCE,
             self.DEFAULT_COVARIANCE,
             self.DEFAULT_MDE,
-            ALTERNATIVE,
+            self.DEFAULT_ALTERNATIVE,
         )
 
         self.assertEqual(ratio.variance, 5.0)
 
-    @parameterized.expand(product((1, 2, 10), (2, 10), ("two-sided", "smaller", "larger")))
+    @parameterized.expand(product((1, 2, 10), (2, 10), TEST_ALTERNATIVES))
     @patch("sample_size.metrics.RatioMetric.variance")
     @patch("scipy.stats.norm")
     def test_ratio__generate_alt_p_values(self, size, sample_size, alternative, mock_norm, mock_variance):
