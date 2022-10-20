@@ -44,7 +44,7 @@ graph TD
     D --> E(MDE)
     E --> G(Alternative)
     G --> F{{Register another metric?}}
-    F --> C & G(Sample Size)
+    F --> C & H(Sample Size)
 ```
 
 
