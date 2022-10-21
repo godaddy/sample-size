@@ -10,13 +10,14 @@ from parameterized import parameterized
 from statsmodels.stats.power import NormalIndPower
 from statsmodels.stats.power import TTestIndPower
 
-from sample_size.metrics import RANDOM_STATE
 from sample_size.metrics import BaseMetric
 from sample_size.metrics import BooleanMetric
 from sample_size.metrics import NumericMetric
 from sample_size.metrics import RatioMetric
+from sample_size.sample_size_calculator import RANDOM_STATE
 
 ALTERNATIVE = "two-sided"
+TEST_ALTERNATIVES = ("two-sided", "smaller", "larger")
 
 
 class DummyMetric(BaseMetric):
@@ -26,7 +27,7 @@ class DummyMetric(BaseMetric):
     def variance(self):
         return MagicMock()
 
-    def _generate_alt_p_values(self, size, sample_size):
+    def _generate_alt_p_values(self, size, sample_size, RANDOM_STATE):
         return MagicMock()
 
 
@@ -53,12 +54,12 @@ class BaseMetricTestCase(unittest.TestCase):
         null_p_value = 1
         alt_p_value = 0
 
-        mock_alt_p_values.side_effect = lambda size, __: np.array([alt_p_value] * size)
+        mock_alt_p_values.side_effect = lambda size, __, random_state: np.array([alt_p_value] * size)
         mock_stats.uniform.rvs.side_effect = lambda _, __, size, random_state: np.array([null_p_value] * size)
 
         metric = DummyMetric(mde, ALTERNATIVE)
 
-        p_values = metric.generate_p_values(true_alt, sample_size)
+        p_values = metric.generate_p_values(true_alt, sample_size, RANDOM_STATE)
 
         mock_alt_p_values.assert_called_once()
         mock_stats.uniform.rvs.assert_called_once()
@@ -68,7 +69,7 @@ class BaseMetricTestCase(unittest.TestCase):
 
 class BooleanMetricTestCase(unittest.TestCase):
     def setUp(self):
-        self.ALTERNATIVE = "two-sided"
+        self.DEFAULT_ALTERNATIVE = ALTERNATIVE
         self.DEFAULT_MDE = 0.01
         self.DEFAULT_PROBABILITY = 0.05
         self.DEFAULT_MOCK_VARIANCE = 99
@@ -78,7 +79,7 @@ class BooleanMetricTestCase(unittest.TestCase):
     def test_boolean_metric_constructor_sets_params(self, mock_variance, mock_check_probability):
         mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_MOCK_VARIANCE)
         mock_check_probability.return_value = self.DEFAULT_PROBABILITY
-        boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, ALTERNATIVE)
+        boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, self.DEFAULT_ALTERNATIVE)
 
         mock_check_probability.assert_called_once_with(self.DEFAULT_PROBABILITY)
         self.assertEqual(boolean.probability, self.DEFAULT_PROBABILITY)
@@ -87,7 +88,7 @@ class BooleanMetricTestCase(unittest.TestCase):
         self.assertIsInstance(boolean.power_analysis_instance, NormalIndPower)
 
     def test_boolean_metric_variance(self):
-        boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, ALTERNATIVE)
+        boolean = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, self.DEFAULT_ALTERNATIVE)
 
         self.assertEqual(boolean.variance, 0.0475)
 
@@ -118,56 +119,60 @@ class BooleanMetricTestCase(unittest.TestCase):
             "Error: Please provide a float between 0 and 1 for probability.",
         )
 
-    @parameterized.expand(product((1, 2, 10), (2, 10)))
+    @parameterized.expand(product((1, 2, 10), (2, 10), TEST_ALTERNATIVES))
     @patch("sample_size.metrics.BooleanMetric.variance")
     @patch("scipy.stats.norm")
-    def test_boolean__generate_alt_p_values(self, size, sample_size, mock_norm, mock_variance):
+    def test_boolean__generate_alt_p_values(self, size, sample_size, alternative, mock_norm, mock_variance):
         p_value_generator = mock_norm.sf
         p_values = MagicMock()
         mock_norm.rvs.return_value = -ord("🌮")
         p_value_generator.return_value = p_values
         mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_MOCK_VARIANCE)
 
-        metric = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, ALTERNATIVE)
-        p = metric._generate_alt_p_values(size, sample_size)
+        metric = BooleanMetric(self.DEFAULT_PROBABILITY, self.DEFAULT_MDE, alternative)
+        p = metric._generate_alt_p_values(size, sample_size, RANDOM_STATE)
 
         effect_sample_size = self.DEFAULT_MDE / np.sqrt(2 * self.DEFAULT_MOCK_VARIANCE / sample_size)
         mock_norm.rvs.assert_called_once_with(loc=effect_sample_size, size=size, random_state=RANDOM_STATE)
         mock_norm.sf.assert_called_once_with(np.abs(mock_norm.rvs.return_value))
-        assert_array_equal(p, p_values)
+        expected_p_values = p_values if alternative != "two-sided" else 2 * p_values
+        assert_array_equal(p, expected_p_values)
 
 
 class NumericMetricTestCase(unittest.TestCase):
     def setUp(self):
         self.DEFAULT_MDE = 5
         self.DEFAULT_VARIANCE = 5000
+        self.DEFAULT_ALTERNATIVE = ALTERNATIVE
 
     def test_numeric_metric_constructor_sets_params(self):
-        numeric = NumericMetric(self.DEFAULT_VARIANCE, self.DEFAULT_MDE, ALTERNATIVE)
+        numeric = NumericMetric(self.DEFAULT_VARIANCE, self.DEFAULT_MDE, self.DEFAULT_ALTERNATIVE)
 
         self.assertEqual(numeric.variance, self.DEFAULT_VARIANCE)
         self.assertEqual(numeric.mde, self.DEFAULT_MDE)
+        self.assertEqual(numeric.alternative, self.DEFAULT_ALTERNATIVE)
         self.assertIsInstance(numeric.power_analysis_instance, TTestIndPower)
 
-    @parameterized.expand(product((1, 2, 10), (2, 10)))
+    @parameterized.expand(product((1, 2, 10), (2, 10), TEST_ALTERNATIVES))
     @patch("sample_size.metrics.NumericMetric.variance")
     @patch("scipy.stats.nct")
     @patch("scipy.stats.t")
-    def test_numeric__generate_alt_p_values(self, size, sample_size, mock_t, mock_nct, mock_variance):
+    def test_numeric__generate_alt_p_values(self, size, sample_size, alternative, mock_t, mock_nct, mock_variance):
         p_value_generator = mock_t.sf
         p_values = MagicMock()
         mock_nct.rvs.return_value = -ord("🌮")
         p_value_generator.return_value = p_values
         mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_VARIANCE)
 
-        metric = NumericMetric(self.DEFAULT_VARIANCE, self.DEFAULT_MDE, ALTERNATIVE)
-        p = metric._generate_alt_p_values(size, sample_size)
+        metric = NumericMetric(self.DEFAULT_VARIANCE, self.DEFAULT_MDE, alternative)
+        p = metric._generate_alt_p_values(size, sample_size, RANDOM_STATE)
 
         effect_sample_size = np.sqrt(sample_size / 2 / self.DEFAULT_VARIANCE) * self.DEFAULT_MDE
         df = 2 * (sample_size - 1)
         mock_nct.rvs.assert_called_once_with(nc=effect_sample_size, df=df, size=size, random_state=RANDOM_STATE)
         mock_t.sf.assert_called_once_with(np.abs(mock_nct.rvs.return_value), df)
-        assert_array_equal(p, p_values)
+        expected_p_values = p_values if alternative != "two-sided" else 2 * p_values
+        assert_array_equal(p, expected_p_values)
 
 
 class RatioMetricTestCase(unittest.TestCase):
@@ -179,6 +184,7 @@ class RatioMetricTestCase(unittest.TestCase):
         self.DEFAULT_DENOMINATOR_VARIANCE = 2000
         self.DEFAULT_COVARIANCE = 5000
         self.DEFAULT_VARIANCE = 99
+        self.DEFAULT_ALTERNATIVE = ALTERNATIVE
 
     @patch("sample_size.metrics.RatioMetric.variance")
     def test_ratio_metric_constructor_sets_params(self, mock_variance):
@@ -190,7 +196,7 @@ class RatioMetricTestCase(unittest.TestCase):
             self.DEFAULT_DENOMINATOR_VARIANCE,
             self.DEFAULT_COVARIANCE,
             self.DEFAULT_MDE,
-            ALTERNATIVE,
+            self.DEFAULT_ALTERNATIVE,
         )
 
         self.assertEqual(ratio.numerator_mean, self.DEFAULT_NUMERATOR_MEAN)
@@ -210,15 +216,15 @@ class RatioMetricTestCase(unittest.TestCase):
             self.DEFAULT_DENOMINATOR_VARIANCE,
             self.DEFAULT_COVARIANCE,
             self.DEFAULT_MDE,
-            ALTERNATIVE,
+            self.DEFAULT_ALTERNATIVE,
         )
 
         self.assertEqual(ratio.variance, 5.0)
 
-    @parameterized.expand(product((1, 2, 10), (2, 10)))
+    @parameterized.expand(product((1, 2, 10), (2, 10), TEST_ALTERNATIVES))
     @patch("sample_size.metrics.RatioMetric.variance")
     @patch("scipy.stats.norm")
-    def test_ratio__generate_alt_p_values(self, size, sample_size, mock_norm, mock_variance):
+    def test_ratio__generate_alt_p_values(self, size, sample_size, alternative, mock_norm, mock_variance):
         p_value_generator = mock_norm.sf
         p_values = MagicMock()
         mock_norm.rvs.return_value = -ord("🌮")
@@ -232,12 +238,13 @@ class RatioMetricTestCase(unittest.TestCase):
             self.DEFAULT_DENOMINATOR_VARIANCE,
             self.DEFAULT_COVARIANCE,
             self.DEFAULT_MDE,
-            ALTERNATIVE,
+            self.DEFAULT_ALTERNATIVE,
         )
 
-        p = metric._generate_alt_p_values(size, sample_size)
+        p = metric._generate_alt_p_values(size, sample_size, RANDOM_STATE)
 
         effect_sample_size = self.DEFAULT_MDE / np.sqrt(2 * self.DEFAULT_VARIANCE / sample_size)
         mock_norm.rvs.assert_called_once_with(loc=effect_sample_size, size=size, random_state=RANDOM_STATE)
         mock_norm.sf.assert_called_once_with(np.abs(mock_norm.rvs.return_value))
-        assert_array_equal(p, p_values)
+        expected_p_values = p_values if alternative != "two-sided" else 2 * p_values
+        assert_array_equal(p, expected_p_values)

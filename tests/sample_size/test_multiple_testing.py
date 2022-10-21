@@ -4,12 +4,14 @@ from itertools import product
 from unittest.mock import patch
 
 import numpy as np
+from numpy.testing import assert_array_equal
 from parameterized import parameterized
 
 from sample_size.multiple_testing import DEFAULT_EPSILON
 from sample_size.multiple_testing import DEFAULT_REPLICATION
 from sample_size.sample_size_calculator import DEFAULT_ALPHA
 from sample_size.sample_size_calculator import DEFAULT_POWER
+from sample_size.sample_size_calculator import RANDOM_STATE
 from sample_size.sample_size_calculator import SampleSizeCalculator
 from tests.sample_size.test_metrics import ALTERNATIVE
 
@@ -17,7 +19,7 @@ TEST_BOOLEAN = {
     "metric_type": "boolean",
     "metric_metadata": {"probability": 0.05, "mde": 0.02, "alternative": ALTERNATIVE},
 }
-TEST_NUMERIC = {"metric_type": "numeric", "metric_metadata": {"variance": 5000, "mde": 5, "alternative": ALTERNATIVE}}
+TEST_NUMERIC = {"metric_type": "numeric", "metric_metadata": {"variance": 5000, "mde": 5, "alternative": "larger"}}
 TEST_RATIO = {
     "metric_type": "ratio",
     "metric_metadata": {
@@ -26,8 +28,8 @@ TEST_RATIO = {
         "denominator_mean": 20,
         "denominator_variance": 2000,
         "covariance": 25000,
-        "mde": 1,
-        "alternative": ALTERNATIVE,
+        "mde": -1,
+        "alternative": "smaller",
     },
 }
 
@@ -87,7 +89,7 @@ class MultipleTestingTestCase(unittest.TestCase):
 
         sample_size = calculator.get_sample_size()
         self.assertEqual(mock_get_single_sample_size.call_count, expected_call_count)
-        mock_expected_average_power.assert_called_once_with(geom_mean, DEFAULT_REPLICATION)
+        mock_expected_average_power.assert_called_once_with(geom_mean, RANDOM_STATE, DEFAULT_REPLICATION)
         self.assertEqual(sample_size, geom_mean)
 
     @patch("sample_size.multiple_testing.MultipleTestingMixin._expected_average_power")
@@ -122,27 +124,29 @@ class MultipleTestingTestCase(unittest.TestCase):
 
     @parameterized.expand(
         [
-            (TEST_BOOLEAN, 2002, 1),
-            (TEST_NUMERIC, 3455, 2),
-            (TEST_RATIO, 22115, 3),
-            (TEST_BOOLEAN, 2051, 7),
-            (TEST_NUMERIC, 3433, 8),
-            (TEST_RATIO, 20583, 6),
+            (TEST_BOOLEAN, 2051, 1),
+            (TEST_NUMERIC, 2744, 2),
+            (TEST_RATIO, 17414, 4),
+            (TEST_BOOLEAN, 2002, 11),
+            (TEST_NUMERIC, 2786, 8),
+            (TEST_RATIO, 17740, 6),
         ]
     )
     def test_get_multiple_sample_size_fixed_output(self, test_metric, test_sample_size, seed):
-        with patch("sample_size.metrics.RANDOM_STATE", np.random.RandomState(seed)):
-            calculator = SampleSizeCalculator()
-            calculator.register_metrics([test_metric] * 2)
-            sample_size = calculator.get_sample_size()
-            self.assertEqual(sample_size, test_sample_size)
+        N = 3
+        with patch("sample_size.sample_size_calculator.STATE", np.random.RandomState(seed).get_state()):
+            calcs = [SampleSizeCalculator() for _ in range(N)]
+            for calc in calcs:
+                calc.register_metrics([test_metric] * 2)
+            sample_sizes = [calc.get_sample_size() for calc in calcs]
+            assert_array_equal(sample_sizes, [test_sample_size] * N)
 
     @parameterized.expand([(10,), (100,), (1000,)])
     def test_expected_average_power_satisfies_inequality(self, test_size):
         calculator = SampleSizeCalculator()
         calculator.register_metrics([self.test_metric, self.test_metric, self.test_metric])
-        expected_power = calculator._expected_average_power(test_size)
-        inflated_power = calculator._expected_average_power(test_size * 10)
+        expected_power = calculator._expected_average_power(test_size, RANDOM_STATE)
+        inflated_power = calculator._expected_average_power(test_size * 10, RANDOM_STATE)
         self.assertGreater(inflated_power, expected_power)
 
     @parameterized.expand(product((10, 100, 500, 1000), (0.1, 0.2, 0.5, 0.8, 0.9)))
@@ -157,6 +161,6 @@ class MultipleTestingTestCase(unittest.TestCase):
         sample_size = 10  # arbitrary
         calculator = SampleSizeCalculator()
         calculator.register_metrics([self.test_metric] * 2)
-        empirical_power = calculator._expected_average_power(sample_size, replications)
+        empirical_power = calculator._expected_average_power(sample_size, RANDOM_STATE, replications)
         margin_of_error = 1 / np.sqrt(replications)  # proportional to 1 σ
         self.assertAlmostEqual(true_power, empirical_power, delta=margin_of_error)
