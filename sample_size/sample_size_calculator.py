@@ -16,6 +16,8 @@ from sample_size.multiple_testing import MultipleTestingMixin
 DEFAULT_ALPHA = 0.05
 DEFAULT_POWER = 0.8
 DEFAULT_VARIANTS = 2
+RANDOM_STATE = np.random.RandomState(1)
+STATE = RANDOM_STATE.get_state()
 
 schema_file_path = Path(Path(__file__).parent, "metrics_schema.json")
 with open(str(schema_file_path), "r") as schema_file:
@@ -47,7 +49,7 @@ class SampleSizeCalculator(MultipleTestingMixin):
                 alpha=alpha,
                 power=self.power,
                 ratio=1,
-                alternative="two-sided",
+                alternative=metric.alternative,
             )
         )
         return sample_size
@@ -60,7 +62,8 @@ class SampleSizeCalculator(MultipleTestingMixin):
         lower = min([self._get_single_sample_size(metric, self.alpha) for metric in self.metrics])
         upper = max([self._get_single_sample_size(metric, self.alpha / num_tests) for metric in self.metrics])
 
-        return self.get_multiple_sample_size(lower, upper)
+        RANDOM_STATE.set_state(STATE)
+        return self.get_multiple_sample_size(lower, upper, RANDOM_STATE)
 
     def register_metrics(self, metrics: List[Dict[str, Any]]) -> None:
         METRIC_REGISTER_MAP = {

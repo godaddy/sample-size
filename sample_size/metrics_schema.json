@@ -20,6 +20,7 @@
                         "metric_metadata": {
                             "type": "object",
                             "properties": {
+                                "alternative": {"type": "string"},
                                 "mde": {"type": "number"},
                                 "probability": {"type": "number"}
                             },
@@ -39,6 +40,7 @@
                         "metric_metadata": {
                             "type": "object",
                             "properties": {
+                                "alternative": {"type": "string"},
                                 "mde": {"type": "number"},
                                 "variance": {"type": "number"}
                             },
@@ -58,6 +60,7 @@
                         "metric_metadata": {
                             "type": "object",
                             "properties": {
+                                "alternative": {"type": "string"},
                                 "mde": {"type": "number"},
                                 "numerator_mean": {"type": "number"},
                                 "numerator_variance": {"type": "number"},

@@ -8,15 +8,14 @@ from scipy import stats
 from statsmodels.stats.power import NormalIndPower
 from statsmodels.stats.power import TTestIndPower
 
-RANDOM_STATE = np.random.RandomState(1)
-
 
 class BaseMetric:
     __metaclass__ = ABCMeta
     mde: float
 
-    def __init__(self, mde: float):
+    def __init__(self, mde: float, alternative: str):
         self.mde = mde
+        self.alternative = alternative
 
     @property
     @abstractmethod
@@ -35,7 +34,9 @@ class BaseMetric:
         else:
             return number
 
-    def generate_p_values(self, true_alt: npt.NDArray[np.bool_], sample_size: int) -> npt.NDArray[np.float_]:
+    def generate_p_values(
+        self, true_alt: npt.NDArray[np.bool_], sample_size: int, random_state: np.random.RandomState
+    ) -> npt.NDArray[np.float_]:
         """
         This method simulates any registered metric's p-value. The output will
         later be applied to BH procedure
@@ -45,6 +46,8 @@ class BaseMetric:
             Each element represents whether the alternative hypothesis is true
             for an individual hypothesis sample_size: sample size used for simulations
             sample_size: an integer used to generate
+            random_state: random state to generate fixed output for any given input
+
 
         Returns:
             p-value: A float array of shape (m hypotheses x replications) of
@@ -54,13 +57,15 @@ class BaseMetric:
         total_null = true_alt.size - total_alt
 
         p_values = np.empty(true_alt.shape)
-        p_values[true_alt] = self._generate_alt_p_values(total_alt, sample_size)
-        p_values[~true_alt] = stats.uniform.rvs(0, 1, total_null, random_state=RANDOM_STATE)
+        p_values[true_alt] = self._generate_alt_p_values(total_alt, sample_size, random_state)
+        p_values[~true_alt] = stats.uniform.rvs(0, 1, total_null, random_state=random_state)
 
         return p_values
 
     @abstractmethod
-    def _generate_alt_p_values(self, size: int, sample_size: int) -> npt.NDArray[np.float_]:
+    def _generate_alt_p_values(
+        self, size: int, sample_size: int, random_state: np.random.RandomState
+    ) -> npt.NDArray[np.float_]:
         raise NotImplementedError
 
 
@@ -72,8 +77,9 @@ class BooleanMetric(BaseMetric):
         self,
         probability: float,
         mde: float,
+        alternative: str,
     ):
-        super(BooleanMetric, self).__init__(mde)
+        super(BooleanMetric, self).__init__(mde, alternative)
         self.probability = self._check_probability(probability)
 
     @property
@@ -91,10 +97,14 @@ class BooleanMetric(BaseMetric):
         else:
             raise ValueError("Error: Please provide a float between 0 and 1 for probability.")
 
-    def _generate_alt_p_values(self, size: int, sample_size: int) -> npt.NDArray[np.float_]:
+    def _generate_alt_p_values(
+        self, size: int, sample_size: int, random_state: np.random.RandomState
+    ) -> npt.NDArray[np.float_]:
         effect_size = self.mde / np.sqrt(2 * self.variance / sample_size)
-        z_alt = stats.norm.rvs(loc=effect_size, size=size, random_state=RANDOM_STATE)
-        p_values: npt.NDArray[np.float_] = 2 * stats.norm.sf(np.abs(z_alt))
+        z_alt = stats.norm.rvs(loc=effect_size, size=size, random_state=random_state)
+        p_values: npt.NDArray[np.float_] = stats.norm.sf(np.abs(z_alt))
+        if self.alternative == "two-sided":
+            p_values *= 2
         return p_values
 
 
@@ -105,8 +115,9 @@ class NumericMetric(BaseMetric):
         self,
         variance: float,
         mde: float,
+        alternative: str,
     ):
-        super(NumericMetric, self).__init__(mde)
+        super(NumericMetric, self).__init__(mde, alternative)
         self._variance = self.check_positive(variance, "variance")
 
     @property
@@ -117,10 +128,15 @@ class NumericMetric(BaseMetric):
     def power_analysis_instance(self) -> TTestIndPower:
         return TTestIndPower()
 
-    def _generate_alt_p_values(self, size: int, sample_size: int) -> npt.NDArray[np.float_]:
+    def _generate_alt_p_values(
+        self, size: int, sample_size: int, random_state: np.random.RandomState
+    ) -> npt.NDArray[np.float_]:
         nc = np.sqrt(sample_size / 2 / self.variance) * self.mde
-        t_alt = stats.nct.rvs(nc=nc, df=2 * (sample_size - 1), size=size, random_state=RANDOM_STATE)
-        p_values: npt.NDArray[np.float_] = 2 * stats.t.sf(np.abs(t_alt), 2 * (sample_size - 1))
+        t_alt = stats.nct.rvs(nc=nc, df=2 * (sample_size - 1), size=size, random_state=random_state)
+        p_values: npt.NDArray[np.float_] = stats.t.sf(np.abs(t_alt), 2 * (sample_size - 1))
+        # Todo: use accurate p-value calculation due to nct's asymmetric distribution
+        if self.alternative == "two-sided":
+            p_values *= 2
         return p_values
 
 
@@ -139,8 +155,9 @@ class RatioMetric(BaseMetric):
         denominator_variance: float,
         covariance: float,
         mde: float,
+        alternative: str,
     ):
-        super(RatioMetric, self).__init__(mde)
+        super(RatioMetric, self).__init__(mde, alternative)
         # TODO: add check for Cauchy-Schwarz inequality
         self.numerator_mean = numerator_mean
         self.numerator_variance = self.check_positive(numerator_variance, "numerator variance")
@@ -162,8 +179,12 @@ class RatioMetric(BaseMetric):
     def power_analysis_instance(self) -> NormalIndPower:
         return NormalIndPower()
 
-    def _generate_alt_p_values(self, size: int, sample_size: int) -> npt.NDArray[np.float_]:
+    def _generate_alt_p_values(
+        self, size: int, sample_size: int, random_state: np.random.RandomState
+    ) -> npt.NDArray[np.float_]:
         effect_size = self.mde / np.sqrt(2 * self.variance / sample_size)
-        z_alt = stats.norm.rvs(loc=effect_size, size=size, random_state=RANDOM_STATE)
-        p_values: npt.NDArray[np.float_] = 2 * stats.norm.sf(np.abs(z_alt))
+        z_alt = stats.norm.rvs(loc=effect_size, size=size, random_state=random_state)
+        p_values: npt.NDArray[np.float_] = stats.norm.sf(np.abs(z_alt))
+        if self.alternative == "two-sided":
+            p_values *= 2
         return p_values
