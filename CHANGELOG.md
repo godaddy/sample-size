@@ -1,3 +1,10 @@
+v3.0.0 - 2022-10-31
+----------------------
+
+Feature:
+* [#61](https://github.com/godaddy/sample-size/pull/61) - support sample size calculation for one-sided test and update documentation
+
+
 v2.0.3 - 2022-09-27
 ----------------------
 
