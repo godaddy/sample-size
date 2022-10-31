@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@1f9a0c22da41e6ebfa534300ef656657ea2c6707
     - name: Set up Python 3.7
-      uses: actions/setup-python@8bcd2560e267a43fbd8ff66c50da8a61825a0782
+      uses: actions/setup-python@4818a5a1535387fb9d6e71f7ace82ad3b405804b
       with:
         python-version: 3.7
     - name: Install dependencies

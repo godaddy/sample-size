@@ -10,7 +10,9 @@ from sample_size.metrics import RatioMetric
 from sample_size.sample_size_calculator import DEFAULT_ALPHA
 from sample_size.sample_size_calculator import DEFAULT_POWER
 from sample_size.sample_size_calculator import DEFAULT_VARIANTS
+from sample_size.sample_size_calculator import RANDOM_STATE
 from sample_size.sample_size_calculator import SampleSizeCalculator
+from tests.sample_size.test_metrics import ALTERNATIVE
 
 
 class SampleSizeCalculatorTestCase(unittest.TestCase):
@@ -44,6 +46,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         test_metric = BooleanMetric(
             test_probability,
             test_mde,
+            ALTERNATIVE,
         )
         mock_solve_power.return_value = test_sample_size
 
@@ -67,6 +70,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         test_metric = NumericMetric(
             test_variance,
             test_mde,
+            ALTERNATIVE,
         )
         mock_solve_power.return_value = test_sample_size
         calculator = SampleSizeCalculator()
@@ -84,8 +88,8 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
 
     @parameterized.expand(
         [
-            ("boolean", {"probability": 0.05, "mde": 0.02}),
-            ("numeric", {"variance": 500, "mde": 5}),
+            ("boolean", {"probability": 0.05, "mde": 0.02, "alternative": "two-sided"}),
+            ("numeric", {"variance": 500, "mde": 5, "alternative": "smaller"}),
             (
                 "ratio",
                 {
@@ -95,6 +99,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
                     "denominator_variance": 2000,
                     "covariance": 5000,
                     "mde": 10,
+                    "alternative": "larger",
                 },
             ),
         ]
@@ -128,7 +133,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         test_sample_size = 2000
         mock_get_multiple_sample_size.return_value = test_sample_size
         mock_get_single_sample_size.return_value = test_sample_size
-        test_metric_metadata = {"probability": 0.05, "mde": 0.02}
+        test_metric_metadata = {"probability": 0.05, "mde": 0.02, "alternative": ALTERNATIVE}
         calculator = SampleSizeCalculator()
         calculator.register_metrics(
             [
@@ -149,14 +154,14 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
                 call(calculator.metrics[1], calculator.alpha / 2),
             ]
         )
-        mock_get_multiple_sample_size.assert_called_once_with(test_sample_size, test_sample_size)
+        mock_get_multiple_sample_size.assert_called_once_with(test_sample_size, test_sample_size, RANDOM_STATE)
 
     # TODO: parameterize register metric functions
     def test_register_metric_boolean(self):
         test_metric_type = "boolean"
         test_probability = 0.05
         test_mde = 0.02
-        test_metric_metadata = {"probability": test_probability, "mde": test_mde}
+        test_metric_metadata = {"probability": test_probability, "mde": test_mde, "alternative": "larger"}
 
         calculator = SampleSizeCalculator()
         calculator.register_metrics([{"metric_type": test_metric_type, "metric_metadata": test_metric_metadata}])
@@ -172,7 +177,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
         test_metric_type = "numeric"
         test_variance = 5000.0
         test_mde = 5.0
-        test_metric_metadata = {"variance": test_variance, "mde": test_mde}
+        test_metric_metadata = {"variance": test_variance, "mde": test_mde, "alternative": "two-sided"}
 
         calculator = SampleSizeCalculator()
         calculator.register_metrics([{"metric_type": test_metric_type, "metric_metadata": test_metric_metadata}])
@@ -200,6 +205,7 @@ class SampleSizeCalculatorTestCase(unittest.TestCase):
             "denominator_variance": test_denominator_variance,
             "covariance": test_covariance,
             "mde": test_mde,
+            "alternative": "smaller",
         }
 
         calculator = SampleSizeCalculator()
