@@ -54,16 +54,34 @@ class SampleSizeCalculator(MultipleTestingMixin):
         )
         return sample_size
 
-    def get_sample_size(self) -> float:
-        if len(self.metrics) * (self.variants - 1) < 2:
-            return self._get_single_sample_size(self.metrics[0], self.alpha)
+    def get_sample_size(self, category_split: bool = False) -> float:
+        if category_split:
+            sample_sizes = []
+            metric_lists = [
+                [m for m in self.metrics if m.alternative == "two-sided"],
+                [m for m in self.metrics if m.alternative != "two-sided"],
+            ]
+            for metrics in metric_lists:
+                if len(metrics) * (self.variants - 1) == 1:
+                    sample_sizes.append(self._get_single_sample_size(metrics[0], self.alpha))
+                elif len(metrics) * (self.variants - 1) > 1:
+                    num_tests = len(metrics) * (self.variants - 1)
+                    lower = min([self._get_single_sample_size(metric, self.alpha) for metric in metrics])
+                    upper = max([self._get_single_sample_size(metric, self.alpha / num_tests) for metric in metrics])
+                    RANDOM_STATE.set_state(STATE)
+                    sample_sizes.append(self.get_multiple_sample_size(lower, upper, RANDOM_STATE))
+            return max(sample_sizes)
 
-        num_tests = len(self.metrics) * (self.variants - 1)
-        lower = min([self._get_single_sample_size(metric, self.alpha) for metric in self.metrics])
-        upper = max([self._get_single_sample_size(metric, self.alpha / num_tests) for metric in self.metrics])
+        else:
+            if len(self.metrics) * (self.variants - 1) == 1:
+                return self._get_single_sample_size(self.metrics[0], self.alpha)
 
-        RANDOM_STATE.set_state(STATE)
-        return self.get_multiple_sample_size(lower, upper, RANDOM_STATE)
+            num_tests = len(self.metrics) * (self.variants - 1)
+            lower = min([self._get_single_sample_size(metric, self.alpha) for metric in self.metrics])
+            upper = max([self._get_single_sample_size(metric, self.alpha / num_tests) for metric in self.metrics])
+
+            RANDOM_STATE.set_state(STATE)
+            return self.get_multiple_sample_size(lower, upper, RANDOM_STATE)
 
     def register_metrics(self, metrics: List[Dict[str, Any]]) -> None:
         METRIC_REGISTER_MAP = {
@@ -78,3 +96,6 @@ class SampleSizeCalculator(MultipleTestingMixin):
             metric_class = METRIC_REGISTER_MAP[metric["metric_type"]]
             registered_metric = metric_class(**metric["metric_metadata"])
             self.metrics.append(registered_metric)
+            # if metric["alternative"] == "two-sided":
+            #     self.decision_metrics.append(registered_metric)
+            #     self.guardrail_metrics.append(registered_metric)

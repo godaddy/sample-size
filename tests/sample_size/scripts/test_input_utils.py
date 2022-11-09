@@ -150,7 +150,7 @@ class UtilsTestCase(unittest.TestCase):
             input_utils.get_alternative()
         self.assertEqual(
             context.exception.args[0],
-            "Error: Unexpected alternative type. Please enter two-sided, larger, or smaller.",
+            "Error: Unexpected alternative type. Please enter two-sided or one-sided.",
         )
         mock_input.assert_called_once()
 

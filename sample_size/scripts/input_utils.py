@@ -77,7 +77,7 @@ def get_alternative() -> str:
         print("Using default(two-sided test)...")
         return "two-sided"
     else:
-        raise ValueError("Error: Unexpected alternative type. Please enter two-sided, larger, or smaller.")
+        raise ValueError("Error: Unexpected alternative type. Please enter two-sided or one-sided.")
 
 
 def get_metric_type() -> str:
