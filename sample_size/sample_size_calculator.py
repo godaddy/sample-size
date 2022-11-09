@@ -96,6 +96,3 @@ class SampleSizeCalculator(MultipleTestingMixin):
             metric_class = METRIC_REGISTER_MAP[metric["metric_type"]]
             registered_metric = metric_class(**metric["metric_metadata"])
             self.metrics.append(registered_metric)
-            # if metric["alternative"] == "two-sided":
-            #     self.decision_metrics.append(registered_metric)
-            #     self.guardrail_metrics.append(registered_metric)
