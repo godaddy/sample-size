@@ -15,7 +15,7 @@ jsonschema = "^4.5.1"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^5.0"
-coverage = "^6.3"
+coverage = "^7.0"
 isort = "^5.6.3"
 black = "^22.3.0"
 mypy = "^0.991"
