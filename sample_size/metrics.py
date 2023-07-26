@@ -104,7 +104,7 @@ class BooleanMetric(BaseMetric):
         z_alt = stats.norm.rvs(loc=effect_size, size=size, random_state=random_state)
         p_values: npt.NDArray[np.float_] = stats.norm.sf(np.abs(z_alt))
         if self.alternative == "two-sided":
-            p_values *= 2
+            return 2 * p_values
         return p_values
 
 
@@ -136,7 +136,7 @@ class NumericMetric(BaseMetric):
         p_values: npt.NDArray[np.float_] = stats.t.sf(np.abs(t_alt), 2 * (sample_size - 1))
         # Todo: use accurate p-value calculation due to nct's asymmetric distribution
         if self.alternative == "two-sided":
-            p_values *= 2
+            return 2 * p_values
         return p_values
 
 
@@ -186,5 +186,5 @@ class RatioMetric(BaseMetric):
         z_alt = stats.norm.rvs(loc=effect_size, size=size, random_state=random_state)
         p_values: npt.NDArray[np.float_] = stats.norm.sf(np.abs(z_alt))
         if self.alternative == "two-sided":
-            p_values *= 2
+            return 2 * p_values
         return p_values

@@ -101,7 +101,7 @@ class MultipleTestingMixin:
             for i, m in enumerate(metrics):
                 p_values.append(m.generate_p_values(true_alt[i], sample_size, random_state))
 
-            rejected = np.apply_along_axis(fdr_bh, 0, np.array(p_values))  # type: ignore[no-untyped-call]
+            rejected = np.apply_along_axis(fdr_bh, 0, np.array(p_values))
 
             true_discoveries = rejected & true_alt
 
