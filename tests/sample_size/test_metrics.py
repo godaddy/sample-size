@@ -124,7 +124,7 @@ class BooleanMetricTestCase(unittest.TestCase):
     @patch("scipy.stats.norm")
     def test_boolean__generate_alt_p_values(self, size, sample_size, alternative, mock_norm, mock_variance):
         p_value_generator = mock_norm.sf
-        p_values = MagicMock()
+        p_values = ["🏝️", "🏜️", "🌋"]
         mock_norm.rvs.return_value = -ord("🌮")
         p_value_generator.return_value = p_values
         mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_MOCK_VARIANCE)
@@ -159,7 +159,7 @@ class NumericMetricTestCase(unittest.TestCase):
     @patch("scipy.stats.t")
     def test_numeric__generate_alt_p_values(self, size, sample_size, alternative, mock_t, mock_nct, mock_variance):
         p_value_generator = mock_t.sf
-        p_values = MagicMock()
+        p_values = ["🏝️", "🏜️", "🌋"]
         mock_nct.rvs.return_value = -ord("🌮")
         p_value_generator.return_value = p_values
         mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_VARIANCE)
@@ -226,7 +226,7 @@ class RatioMetricTestCase(unittest.TestCase):
     @patch("scipy.stats.norm")
     def test_ratio__generate_alt_p_values(self, size, sample_size, alternative, mock_norm, mock_variance):
         p_value_generator = mock_norm.sf
-        p_values = MagicMock()
+        p_values = ["🏝️", "🏜️", "🌋"]
         mock_norm.rvs.return_value = -ord("🌮")
         p_value_generator.return_value = p_values
         mock_variance.__get__ = MagicMock(return_value=self.DEFAULT_VARIANCE)
@@ -238,7 +238,7 @@ class RatioMetricTestCase(unittest.TestCase):
             self.DEFAULT_DENOMINATOR_VARIANCE,
             self.DEFAULT_COVARIANCE,
             self.DEFAULT_MDE,
-            self.DEFAULT_ALTERNATIVE,
+            alternative,
         )
 
         p = metric._generate_alt_p_values(size, sample_size, RANDOM_STATE)
