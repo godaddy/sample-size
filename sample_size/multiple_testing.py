@@ -64,7 +64,10 @@ class MultipleTestingMixin:
         if np.isclose(self.power, expected_power, atol=epsilon):
             return candidate
         elif lower == upper:
-            raise RecursionError(f"Couldn't find a sample size that satisfies the power you requested: {self.power}")
+            if expected_power > self.power:
+                raise RecursionError("Unusually small sample size. Please verify input parameters")
+            else:
+                raise RecursionError("Unusually large sample size. Please verify input parameters")
 
         if expected_power > self.power:
             return self.get_multiple_sample_size(lower, candidate, random_state, depth + 1)

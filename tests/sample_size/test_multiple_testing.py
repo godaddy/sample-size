@@ -1,5 +1,4 @@
 import unittest
-from itertools import cycle
 from itertools import product
 from unittest.mock import patch
 
@@ -92,10 +91,14 @@ class MultipleTestingTestCase(unittest.TestCase):
         mock_expected_average_power.assert_called_once_with(geom_mean, RANDOM_STATE, DEFAULT_REPLICATION)
         self.assertEqual(sample_size, geom_mean)
 
+    @parameterized.expand([(1.0, "small"), (0.0, "large")])
+    @patch("sample_size.sample_size_calculator.SampleSizeCalculator._get_single_sample_size")
     @patch("sample_size.multiple_testing.MultipleTestingMixin._expected_average_power")
-    def test_get_multiple_sample_size_converges_without_solution(self, mock_expected_power):
-        mock_expected_power.return_value = 0
-
+    def test_get_multiple_sample_size_converges_without_solution(
+        self, power, error, mock_expected_power, mock__expected_average_power
+    ):
+        mock_expected_power.return_value = power
+        mock__expected_average_power.return_value = 1000.0
         calculator = SampleSizeCalculator()
         calculator.register_metrics([self.test_metric, self.test_metric])
 
@@ -103,15 +106,12 @@ class MultipleTestingTestCase(unittest.TestCase):
             calculator.get_sample_size()
         self.assertEqual(
             str(context.exception),
-            f"Couldn't find a sample size that satisfies the power you requested: {DEFAULT_POWER}",
+            f"Unusually {error} sample size. Please verify input parameters",
         )
 
     @patch("sample_size.multiple_testing.MultipleTestingMixin._expected_average_power")
     def test_get_multiple_sample_size_does_not_converge(self, mock_expected_power):
-        delta = 2 * DEFAULT_EPSILON
-        alternating_power = cycle([DEFAULT_POWER - delta, DEFAULT_POWER + delta])
-        mock_expected_power.side_effect = lambda *_: next(alternating_power)
-
+        mock_expected_power.return_value = 0.0
         calculator = SampleSizeCalculator()
         calculator.register_metrics([self.test_metric, self.test_metric])
 
