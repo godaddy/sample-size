@@ -1,3 +1,11 @@
+v3.0.1 - 2026-07-30
+----------------------
+
+Change:
+* Widen supported Python range to `>=3.8,<3.13` (adds 3.11 / 3.12) so consumers can leave the deprecated Python 3.10 GCI line
+* CI matrix extended to Python 3.11 and 3.12
+
+
 v3.0.0 - 2022-10-31
 ----------------------
 

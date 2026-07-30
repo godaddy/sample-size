@@ -13,7 +13,7 @@ Please make sure you have [Python 3](https://www.python.org/downloads/) installe
 **Verify Python was installed** 
 
 ```bash
-python -V # python version should >=3.7.1, <3.11
+python -V # python version should >=3.8, <3.13
 ```
 
 **Verify pip was installed** 
