@@ -36,7 +36,7 @@ class BaseMetric:
 
     def generate_p_values(
         self, true_alt: npt.NDArray[np.bool_], sample_size: int, random_state: np.random.RandomState
-    ) -> npt.NDArray[np.float_]:
+    ) -> npt.NDArray[np.float64]:
         """
         This method simulates any registered metric's p-value. The output will
         later be applied to BH procedure
@@ -65,7 +65,7 @@ class BaseMetric:
     @abstractmethod
     def _generate_alt_p_values(
         self, size: int, sample_size: int, random_state: np.random.RandomState
-    ) -> npt.NDArray[np.float_]:
+    ) -> npt.NDArray[np.float64]:
         raise NotImplementedError
 
 
@@ -99,10 +99,10 @@ class BooleanMetric(BaseMetric):
 
     def _generate_alt_p_values(
         self, size: int, sample_size: int, random_state: np.random.RandomState
-    ) -> npt.NDArray[np.float_]:
+    ) -> npt.NDArray[np.float64]:
         effect_size = self.mde / np.sqrt(2 * self.variance / sample_size)
         z_alt = stats.norm.rvs(loc=effect_size, size=size, random_state=random_state)
-        p_values: npt.NDArray[np.float_] = stats.norm.sf(np.abs(z_alt))
+        p_values: npt.NDArray[np.float64] = stats.norm.sf(np.abs(z_alt))
         if self.alternative == "two-sided":
             return 2 * p_values
         return p_values
@@ -130,10 +130,10 @@ class NumericMetric(BaseMetric):
 
     def _generate_alt_p_values(
         self, size: int, sample_size: int, random_state: np.random.RandomState
-    ) -> npt.NDArray[np.float_]:
+    ) -> npt.NDArray[np.float64]:
         nc = np.sqrt(sample_size / 2 / self.variance) * self.mde
         t_alt = stats.nct.rvs(nc=nc, df=2 * (sample_size - 1), size=size, random_state=random_state)
-        p_values: npt.NDArray[np.float_] = stats.t.sf(np.abs(t_alt), 2 * (sample_size - 1))
+        p_values: npt.NDArray[np.float64] = stats.t.sf(np.abs(t_alt), 2 * (sample_size - 1))
         # Todo: use accurate p-value calculation due to nct's asymmetric distribution
         if self.alternative == "two-sided":
             return 2 * p_values
@@ -181,10 +181,10 @@ class RatioMetric(BaseMetric):
 
     def _generate_alt_p_values(
         self, size: int, sample_size: int, random_state: np.random.RandomState
-    ) -> npt.NDArray[np.float_]:
+    ) -> npt.NDArray[np.float64]:
         effect_size = self.mde / np.sqrt(2 * self.variance / sample_size)
         z_alt = stats.norm.rvs(loc=effect_size, size=size, random_state=random_state)
-        p_values: npt.NDArray[np.float_] = stats.norm.sf(np.abs(z_alt))
+        p_values: npt.NDArray[np.float64] = stats.norm.sf(np.abs(z_alt))
         if self.alternative == "two-sided":
             return 2 * p_values
         return p_values
