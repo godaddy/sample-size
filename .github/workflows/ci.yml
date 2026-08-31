@@ -8,35 +8,26 @@ on:
 jobs:
   tests:
     name: Format and Tests
-    runs-on: "${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.8', '3.9', '3.10']
-        include:
-          - os: ubuntu-latest
-          - os: windows-latest
-          - os: macos-latest
     env:
       PYTHON: ${{ matrix.python-version }}
       OS: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Get full Python version
-        id: full-python-version
-        shell: bash
-        run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
-
       - name: Install poetry
-        run:  |
+        run: |
           pip install --upgrade pip
           pip install --upgrade poetry
 
@@ -55,7 +46,17 @@ jobs:
       - name: Type Check
         shell: bash
         run: poetry run type-check
-      
+
       - name: Unit test
         shell: bash
         run: poetry run test
+
+  # Stable name for branch protection. Keep this job if the Python/OS matrix changes.
+  ci-success:
+    name: CI success
+    if: always()
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm all matrix jobs succeeded
+        run: test "${{ needs.tests.result }}" = "success"
