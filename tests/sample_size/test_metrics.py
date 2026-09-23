@@ -24,8 +24,9 @@ class DummyMetric(BaseMetric):
     def power_analysis_instance(self):
         return MagicMock()
 
-    def variance(self):
-        return MagicMock()
+    @property
+    def variance(self) -> float:
+        return 1.0
 
     def _generate_alt_p_values(self, size, sample_size, RANDOM_STATE):
         return MagicMock()

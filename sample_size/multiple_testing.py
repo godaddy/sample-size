@@ -94,7 +94,7 @@ class MultipleTestingMixin:
         # a metric for each test we would conduct
         metrics = self.metrics * (self.variants - 1)
 
-        def fdr_bh(a: npt.NDArray[np.float_]) -> npt.NDArray[np.bool_]:
+        def fdr_bh(a: npt.NDArray[np.float64]) -> npt.NDArray[np.bool_]:
             rejected: npt.NDArray[np.bool_] = multipletests(a, alpha=self.alpha, method="fdr_bh")[0]
             return rejected
 
